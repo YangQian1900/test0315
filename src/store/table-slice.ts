@@ -1,5 +1,6 @@
 import type { IFiled } from "@/interfaces/table";
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
+import Item from "antd/es/list/Item";
 
 interface ITableState{
     data: IFiled[];
@@ -27,7 +28,12 @@ export const tableSlice = createSlice({
             });
         },
         deleteRow:(state,action:PayloadAction<number>)=>{
-            state.data = state.data.filter(item=>item.index !== action.payload);
+            state.data = state.data.filter(item=>item.index !== action.payload).map((item,index)=>{
+                return {
+                    ...item,
+                     index:index+1,
+                };
+            });
         },
         updateRow:(state,action:PayloadAction<IFiled>)=>{
             const index = state.data.findIndex(item=>item.index === action.payload.index);
