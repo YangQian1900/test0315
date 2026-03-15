@@ -4,21 +4,30 @@ import useVariableTableLogic from "./logic";
 import Table from "antd/es/table";
 import { Button } from "antd";
 import TextArea from "antd/es/input/TextArea";
+import EditableRow from "./components/EditableRow";
+import EditableCell from "./components/EditableCell";
 
 const VariableTable: FC = () => {
   const {
     tableData,
-    columns,
+    mergedColumns,
     selectedRowKey,
     setSelectedRowKey,
     addTableEmptyRow,
     deleteTableRow,
   } = useVariableTableLogic();
+  const tableComponents = {
+    body: {
+      row: EditableRow,
+      cell: EditableCell,
+    },
+  };
   return (
     <div className={styles.center}>
       <Table
         dataSource={tableData}
-        columns={columns}
+        columns={mergedColumns}
+        components={tableComponents}
         bordered
         className={styles.table}
         pagination={false}

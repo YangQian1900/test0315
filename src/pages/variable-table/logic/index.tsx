@@ -1,13 +1,36 @@
 import { useDispatch, useSelector } from "react-redux";
-import { getColumns } from "./table";
+import { columns } from "./table";
 import type { AppDispatch, RootState } from "@/store";
 import { addRow, deleteRow, updateRow, setTable } from "@/store/table-slice";
 import { useState } from "react";
+import type { ICusCellRenderColumnType, IFiled } from "@/interfaces/table";
+import EditableCell from "../components/EditableCell";
 
 const useVariableTableLogic = () => {
   const tableData = useSelector((state: RootState) => state.table.data);
   const dispatch = useDispatch<AppDispatch>();
-  const columns = getColumns();
+  const mergedColumns: ICusCellRenderColumnType[] = columns.map((col) => {
+    return {
+      ...col,
+      render: (text, record) => {
+        return col.renderFormItem ? (
+          <EditableCell
+            dataIndex={col.dataIndex}
+            record={record}
+            renderFormItem={col.renderFormItem}
+            onCellSave={(key: IFiled["index"], value: IFiled[keyof IFiled]) => {
+              // handleCellSave(key, value, col.dataIndex)
+            }}
+          >
+            {text}
+          </EditableCell>
+        ) : (
+          <>{text}</>
+        );
+      },
+    };
+  });
+
   /** 当前选中行的key */
   const [selectedRowKey, setSelectedRowKey] = useState(-1);
 
@@ -26,7 +49,7 @@ const useVariableTableLogic = () => {
   };
 
   return {
-    columns,
+    mergedColumns,
     tableData,
     selectedRowKey,
     setSelectedRowKey,
