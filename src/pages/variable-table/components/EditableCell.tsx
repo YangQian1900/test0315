@@ -1,22 +1,25 @@
 import { useContext, type FC } from "react";
 import { Form } from "antd";
-import type { IFiled, RenderFormItemFuncType } from "@/interfaces/table";
+import type { HandleCellSaveFuncTyp, IFiled, RenderFormItemFuncType } from "@/interfaces/table";
 import EditableRowContext from "@/context/editable-row-content";
 
 interface EditableCellProps {
+  /** 单元格是否正处于编辑中 */
+  isEditing: boolean;
   children: React.ReactNode;
-  dataIndex: keyof IFiled;
+  cellKey: keyof IFiled;
   /** 行数据 */
   record: IFiled;
   /** 每一列自定义编辑方式 是input框还是select等等 */
   renderFormItem?: RenderFormItemFuncType;
   /** 保存该单元格修改之后的数据 */
-  onCellSave: (key: IFiled["index"], value: IFiled[keyof IFiled]) => void;
+  onCellSave: HandleCellSaveFuncTyp;
 }
 
 const EditableCell: FC<EditableCellProps> = ({
+  isEditing,
   children,
-  dataIndex,
+  cellKey,
   record,
   renderFormItem,
   onCellSave,
@@ -27,9 +30,9 @@ const EditableCell: FC<EditableCellProps> = ({
   const save = async () => {
     try {
       // 1、表格校验
-      const value = await form.validateFields([dataIndex]);
+      const value = await form.validateFields([cellKey]);
       // 2、保存单元格的值
-      onCellSave(record.index, value[dataIndex]);
+      onCellSave(record.index,cellKey, value[cellKey]);
     } catch (err) {
       console.log("验证失败", err);
     }
@@ -37,11 +40,11 @@ const EditableCell: FC<EditableCellProps> = ({
 
   return (
     <td {...restProps}>
-      {renderFormItem ? (
+      {isEditing && renderFormItem ? (
         <Form.Item
-          name={dataIndex}
+          name={cellKey}
           style={{ margin: 0 }}
-          initialValue={record[dataIndex]}
+          initialValue={record[cellKey]}
         >
           {renderFormItem(form, record, save)}
         </Form.Item>

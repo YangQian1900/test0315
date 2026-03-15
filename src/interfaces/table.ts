@@ -34,4 +34,9 @@ export type ICusCellRenderColumnType = ColumnType<IFiled> & {
   dataIndex: keyof IFiled;
   /** 自定义列的渲染 */
   renderFormItem?: RenderFormItemFuncType;
+  /** 当前单元格是否处于编辑中 */
+  isEditing:boolean;
 };
+
+/** 保存单元格数据的方法声明 */
+export type HandleCellSaveFuncTyp = (rowKey: IFiled["index"], cellKey:keyof IFiled,value: IFiled[keyof IFiled]) => void;
