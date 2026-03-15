@@ -1,0 +1,17 @@
+# ouput
+dist/
+
+# dependency directories
+node_modules/
+
+# environment files
+.env*
+
+# editor directories
+.vscode/
+
+# OS files
+.DS_Store
+
+# test files
+__test__/
