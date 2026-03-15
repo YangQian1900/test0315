@@ -20,6 +20,7 @@ src/
  │   ├─ core-router.tsx        # 每个模块的路由
  │   ├─ lazy.ts                # 懒加载组件(组件包了一层lazy)
  ├─ store/                  # 全局状态管理
+ ├─ types/                  # 全局类型声明
  ├─ hooks/                  # 自定义 Hook
  ├─ utils/                  # 工具函数
  ├─ App.jsx
