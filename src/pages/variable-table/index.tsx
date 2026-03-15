@@ -6,10 +6,10 @@ import { Button } from "antd";
 import TextArea from "antd/es/input/TextArea";
 
 const VariableTable:FC = () => {
-  const {columns} = useVariableTableLogic();
+  const {tableData,columns} = useVariableTableLogic();
   return (
   <div className={styles.center}>
-    <Table dataSource={[]} columns={columns} bordered className={styles.table} />
+    <Table dataSource={tableData} columns={columns} bordered className={styles.table} />
     <div className={styles["row-operation"]}>
       <Button>Add Row</Button>
       <Button>Delete Row</Button>

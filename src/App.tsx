@@ -1,6 +1,8 @@
 import { Routes, Route, type RouteObject } from 'react-router-dom'
 import routeList from './routers'
 import { Suspense } from 'react';
+import { Provider } from 'react-redux';
+import { store } from './store';
 
 
 function renderRoutes(routes:RouteObject[]) {
@@ -13,9 +15,11 @@ function renderRoutes(routes:RouteObject[]) {
 
 function App() {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <Routes>{renderRoutes(routeList)}</Routes>
-    </Suspense>
+    <Provider store={store}>
+      <Suspense fallback={<div>Loading...</div>}>
+        <Routes>{renderRoutes(routeList)}</Routes>
+      </Suspense>
+    </Provider>
   );
 }
 
