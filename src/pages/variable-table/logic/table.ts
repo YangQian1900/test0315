@@ -1,4 +1,7 @@
- export const getColumns = ()=>{
+ import type { IFiled } from "@/interfaces/table";
+import type { ColumnsType } from "antd/es/table";
+
+ export const getColumns = ():ColumnsType<IFiled>=>{
     return [
     {
       title: "Index",
