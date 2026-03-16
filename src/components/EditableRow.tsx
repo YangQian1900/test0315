@@ -1,4 +1,4 @@
-import EditableRowContext from "@/context/editable-row-content";
+import FormContext from "@/context/form-context";
 import Form from "antd/es/form";
 import { useEffect } from "react";
 
@@ -19,9 +19,9 @@ const EditableRow = <T extends object>({
 
   return (
     <Form form={form} component={false}>
-      <EditableRowContext.Provider value={form}>
+      <FormContext.Provider value={form}>
         <tr {...props}>{children}</tr>
-      </EditableRowContext.Provider>
+      </FormContext.Provider>
     </Form>
   );
 };

@@ -1,15 +1,18 @@
 import { useDispatch, useSelector } from "react-redux";
-import { columns, DefaultValueMap } from "./table";
+import { columns, DefaultValueMap, type IFiled } from "./table";
 import type { AppDispatch, RootState } from "@/store";
 import { addRow, deleteRow, updateRow, setTable } from "@/store/table-slice";
 import { useState } from "react";
-import type {
-  HandleCellSaveFuncTyp,
-  ICusCellRenderColumnType,
-  IFiled,
-} from "@/interfaces/table";
 import { message } from "antd";
-import { checkDataTypeRelatedInfo, convertDataToText, convertTextToData } from "./import-helper";
+import {
+  checkDataTypeRelatedInfo,
+  convertDataToText,
+  convertTextToData,
+} from "./import-helper";
+import type {
+  HandleCellSaveFuncType,
+  ICusCellRenderColumnType,
+} from "@/interfaces/table-common";
 
 const useVariableTableLogic = () => {
   const tableData = useSelector((state: RootState) => state.table.data);
@@ -19,22 +22,27 @@ const useVariableTableLogic = () => {
   /** 当前选中行的key */
   const [selectedRowKey, setSelectedRowKey] = useState(-1);
   /** 当前正在编辑的单元格key */
-  const [editingCellKey, setEditingCellKey] = useState<"" | keyof IFiled>();
-  const mergedColumns: ICusCellRenderColumnType[] = columns.map((col) => {
-    return {
-      ...col,
-      onCell: (record) => ({
-        onClick: () => {
-          setEditingCellKey(col.dataIndex);
-        },
-        isEditing: col.dataIndex === editingCellKey,
-        cellKey: col.dataIndex,
-        record,
-        renderFormItem: col.renderFormItem,
-        onCellSave: handleCellSavePlus[col.dataIndex] || handleCellSave,
-      }),
-    };
-  });
+  const [editingCellKey, setEditingCellKey] = useState<string>("");
+  const mergedColumns: ICusCellRenderColumnType<IFiled>[] = columns.map(
+    (col) => {
+      return {
+        ...col,
+        onCell: (record) => ({
+          onClick: () => {
+            setEditingCellKey(col.dataIndex as string);
+          },
+          isEditing:
+            col.dataIndex === editingCellKey && record.index === selectedRowKey,
+          cellKey: col.dataIndex,
+          rowIdName: "index",
+          record,
+          renderFormItem: col.renderFormItem,
+          onCellSave:
+            handleCellSavePlus[col.dataIndex as string] || handleCellSave,
+        }),
+      };
+    },
+  );
 
   /** 新增一空白行 */
   const addTableEmptyRow = () => {
@@ -52,6 +60,7 @@ const useVariableTableLogic = () => {
   /** 删除一行 */
   const deleteTableRow = () => {
     dispatch(deleteRow(selectedRowKey));
+    setSelectedRowKey("");
   };
 
   const findRowData = (rowId: number) => {
@@ -62,7 +71,11 @@ const useVariableTableLogic = () => {
   };
 
   /** 保存单元格数据-公用 */
-  const saveCell: HandleCellSaveFuncTyp = (rowId, cellKey, cellVaue) => {
+  const saveCell: HandleCellSaveFuncType<IFiled, "index"> = (
+    rowId,
+    cellKey,
+    cellVaue,
+  ) => {
     dispatch(
       updateRow({
         // rowKey从1开始算的
@@ -74,7 +87,11 @@ const useVariableTableLogic = () => {
   };
 
   /** 更新单元格数据-公用 */
-  const handleCellSave: HandleCellSaveFuncTyp = (rowId, cellKey, cellValue) => {
+  const handleCellSave: HandleCellSaveFuncType<IFiled, "index"> = (
+    rowId,
+    cellKey,
+    cellValue,
+  ) => {
     saveCell(rowId, cellKey, cellValue);
     // 当前没有编辑单元格
     setEditingCellKey("");
@@ -82,7 +99,7 @@ const useVariableTableLogic = () => {
   };
 
   /** 保存姓名 */
-  const handleNameCellSave: HandleCellSaveFuncTyp = (
+  const handleNameCellSave: HandleCellSaveFuncType<IFiled, "index"> = (
     rowId,
     cellKey,
     cellValue,
@@ -110,11 +127,12 @@ const useVariableTableLogic = () => {
   };
 
   /** 保存数据类型 */
-  const handleDataTypeCellSave: HandleCellSaveFuncTyp = (
+  const handleDataTypeCellSave: HandleCellSaveFuncType<IFiled, "index"> = (
     rowId,
     cellKey,
     cellValue,
   ) => {
+    debugger;
     const valueUpper = cellValue?.toString().toLocaleUpperCase();
     const oldValue = findRowData(rowId)?.[cellKey];
     //1、下拉框value不会为空 还是做一下判断
@@ -133,7 +151,7 @@ const useVariableTableLogic = () => {
   };
 
   /** 保存默认值 */
-  const handleDefaultValueCellSave: HandleCellSaveFuncTyp = (
+  const handleDefaultValueCellSave: HandleCellSaveFuncType<IFiled, "index"> = (
     rowId,
     cellKey,
     cellValue,
@@ -167,7 +185,9 @@ const useVariableTableLogic = () => {
     }
   };
 
-  const handleCellSavePlus: { [props: string]: HandleCellSaveFuncTyp } = {
+  const handleCellSavePlus: {
+    [props: string]: HandleCellSaveFuncType<IFiled, "index">;
+  } = {
     name: handleNameCellSave,
     dataType: handleDataTypeCellSave,
     defaultValue: handleDefaultValueCellSave,
@@ -188,16 +208,16 @@ const useVariableTableLogic = () => {
     }
   };
 
-  const exportText = ()=>{
-    try{
+  const exportText = () => {
+    try {
       const str = convertDataToText(tableData);
       setMultiText(str);
-    }catch (e: unknown) {
+    } catch (e: unknown) {
       if (e instanceof Error) {
         message.error(e.message);
       }
     }
-  }
+  };
 
   return {
     mergedColumns,

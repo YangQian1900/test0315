@@ -1,8 +1,22 @@
-import type { ICusCellRenderColumnType } from "@/interfaces/table";
+import type { ICusCellRenderColumnType } from "@/interfaces/table-common";
 import Input from "antd/es/input";
 import Select from "antd/es/select";
 
-export const columns: ICusCellRenderColumnType[] = [
+/** 字段定义 */
+export interface IFiled {
+  /** 新增一行时index固定传-1 序号从1自动自增  */
+  index: number;
+  /** 字段名称 */
+  name: string;
+  /** 字段类型 */
+  dataType: string;
+  /** 默认值 */
+  defaultValue: string;
+  /** 备注 */
+  comment: string;
+} 
+
+export const columns: ICusCellRenderColumnType<IFiled>[] = [
   {
     title: "Index",
     dataIndex: "index",
@@ -14,7 +28,7 @@ export const columns: ICusCellRenderColumnType[] = [
     dataIndex: "name",
     width: 200,
     isEditing: false,
-    renderFormItem: (_form, _record, save) => (
+    renderFormItem: (_record, save) => (
       <Input onBlur={save} onPressEnter={save} />
     ),
   },
@@ -23,7 +37,7 @@ export const columns: ICusCellRenderColumnType[] = [
     dataIndex: "dataType",
     width: 200,
     isEditing: false,
-    renderFormItem: (_form, _record, save) => (
+    renderFormItem: (_record, save) => (
       <Select
         options={[
           { label: "BOOL", value: "BOOL" },
@@ -38,7 +52,7 @@ export const columns: ICusCellRenderColumnType[] = [
     dataIndex: "defaultValue",
     width: 200,
     isEditing: false,
-    renderFormItem: (_form, _record, save) => (
+    renderFormItem: (_record, save) => (
       <Input onBlur={save} onPressEnter={save} />
     ),
   },
@@ -47,33 +61,33 @@ export const columns: ICusCellRenderColumnType[] = [
     dataIndex: "comment",
     width: 200,
     isEditing: false,
-    renderFormItem: (_form, _record, save) => (
+    renderFormItem: (_record, save) => (
       <Input onBlur={save} onPressEnter={save} />
     ),
   },
 ];
 
 /** 允许的类型 */
-export const DATA_TYPES=["BOOL","INT"] as const;
-type DataType = typeof DATA_TYPES[number];
+export const DATA_TYPES = ["BOOL", "INT"] as const;
+type DataType = (typeof DATA_TYPES)[number];
 
-export const isDataType=(str: string): str is DataType =>{
+export const isDataType = (str: string): str is DataType => {
   return DATA_TYPES.some((x) => x === str);
-}
+};
 
 /** 数据类型对应的默认值 */
-export const DefaultValueMap:Record<string,string> = {
-  BOOL:"TRUE",
-  INT:"0"
+export const DefaultValueMap: Record<string, string> = {
+  BOOL: "TRUE",
+  INT: "0",
 };
 
 /** 数据类型对应的可选值 */
 export const checkValues = {
-  BOOL:(str:string)=>{
-    return ["TRUE","FALSE"].includes(str?.toLocaleUpperCase())
+  BOOL: (str: string) => {
+    return ["TRUE", "FALSE"].includes(str?.toLocaleUpperCase());
   },
-  INT:(str:string)=>{
+  INT: (str: string) => {
     const num = Number(str);
     return Number.isInteger(num) && num >= -2147483648 && num <= 2147483647;
-  }
+  },
 };

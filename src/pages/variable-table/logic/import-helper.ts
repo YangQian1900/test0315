@@ -1,5 +1,4 @@
-import type { IFiled } from "@/interfaces/table";
-import { checkValues, DefaultValueMap, isDataType } from "./table";
+import { checkValues, DefaultValueMap, isDataType, type IFiled } from "./table";
 
 /** 文本开始字符串 */
 const START_STR = "VAR";
@@ -28,7 +27,6 @@ export const textToStrArr = (text: string): string[] => {
 };
 
 export const getVarInfo = (str: string): IFiled => {
-    debugger;
   const matchArr = str.match(REG);
   if (!matchArr) {
     throw Error("Format error, cannot parse");
