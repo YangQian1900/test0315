@@ -13,6 +13,9 @@ const VariableTable: FC = () => {
     mergedColumns,
     selectedRowKey,
     setSelectedRowKey,
+    multiText,
+    setMultiText,
+    importText,
     addTableEmptyRow,
     deleteTableRow,
   } = useVariableTableLogic();
@@ -41,7 +44,7 @@ const VariableTable: FC = () => {
               setSelectedRowKey(record.index);
             }
           },
-          record
+          record,
         })}
         // 高亮选中行
         rowClassName={(record) =>
@@ -53,9 +56,15 @@ const VariableTable: FC = () => {
         <Button onClick={deleteTableRow}>Delete Row</Button>
       </div>
       <div className={styles["custom-input"]}>
-        <TextArea autoSize={{ minRows: 5, maxRows: Number.MAX_SAFE_INTEGER }} />
+        <TextArea
+          autoSize={{ minRows: 5, maxRows: Number.MAX_SAFE_INTEGER }}
+          value={multiText}
+          onChange={(event) => {
+            setMultiText(event.target.value);
+          }}
+        />
         <div className={styles["custom-input-buttons"]}>
-          <Button>Import</Button>
+          <Button onClick={importText}>Import</Button>
           <Button>Export</Button>
         </div>
       </div>

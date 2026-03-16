@@ -1,5 +1,5 @@
 import { useDispatch, useSelector } from "react-redux";
-import { columns } from "./table";
+import { columns, DefaultValueMap } from "./table";
 import type { AppDispatch, RootState } from "@/store";
 import { addRow, deleteRow, updateRow, setTable } from "@/store/table-slice";
 import { useState } from "react";
@@ -9,11 +9,13 @@ import type {
   IFiled,
 } from "@/interfaces/table";
 import { message } from "antd";
-import { isBoolString, isStrValidInt } from "@/utils/string-util";
+import { checkDataTypeRelatedInfo, convertTextToData } from "./import-helper";
 
 const useVariableTableLogic = () => {
   const tableData = useSelector((state: RootState) => state.table.data);
   const dispatch = useDispatch<AppDispatch>();
+  /** 导入的多行文本 */
+  const [multiText, setMultiText] = useState("");
   /** 当前选中行的key */
   const [selectedRowKey, setSelectedRowKey] = useState(-1);
   /** 当前正在编辑的单元格key */
@@ -39,6 +41,10 @@ const useVariableTableLogic = () => {
     dispatch(
       addRow({
         index: -1,
+        name:'',
+        dataType:'',
+        defaultValue:'',
+        comment:''
       }),
     );
   };
@@ -119,13 +125,14 @@ const useVariableTableLogic = () => {
     }
     // 2、类型改变的话 默认值需要改变
     if (oldValue !== valueUpper) {
-      saveCell(rowKey, "defaultValue", valueUpper === "BOOL" ? "TRUE" : 0);
+      saveCell(rowKey, "defaultValue", DefaultValueMap[valueUpper]);
     }
 
     // 3、保存新值
     return handleCellSave(rowKey, cellKey, valueUpper);
   };
 
+  /** 保存默认值 */
   const handleDefaultValueCellSave: HandleCellSaveFuncTyp = (
     rowKey,
     cellKey,
@@ -133,40 +140,45 @@ const useVariableTableLogic = () => {
   ) => {
     const valueTrimed = value?.toString().trim();
     const matchedRow = findRowData(rowKey);
+    if(!matchedRow) return;
     const oldValue = matchedRow?.[cellKey];
-    //1、默认值不能为空
+    // 1、默认值不能为空
     if (!valueTrimed) {
       message.error("Default Value can't be empty");
       setEditingCellKey("");
       return oldValue;
     }
-    //2、数据类型是BOOL时
-    if (matchedRow?.["dataType"] === "BOOL") {
-      if (isBoolString(valueTrimed)) {
-        return handleCellSave(rowKey, cellKey, valueTrimed.toUpperCase());
-      } else {
-        message.error(
-          "When data type is BOOL, defaule value can only accept false, FALSE, true, TRUE",
-        );
-        return oldValue;
-      }
-    } else {
-      // 是INT
-      if (isStrValidInt(valueTrimed)) {
-        return handleCellSave(rowKey, cellKey, valueTrimed);
-      } else {
-        message.error(
-          "When data type is INT, defaule value can only accept a integer bewteen -2147483648 and 2147483647",
-        );
-        return oldValue;
-      }
+    // 2、输入默认值前必须类型不能为空
+     if (!matchedRow.dataType) {
+      message.error("Please input data type first");
+      setEditingCellKey("");
+      return oldValue;
+    }
+    try{
+      // 3、检查默认值是否合法
+      checkDataTypeRelatedInfo(matchedRow.dataType, valueTrimed);
+
+      // 4、保存
+      handleCellSave(rowKey, cellKey, valueTrimed?.toLocaleUpperCase());
+    }catch(error:unknown){
+      if (error instanceof Error) {
+      message.error(error.message);
+    }
     }
   };
 
   const handleCellSavePlus: { [props: string]: HandleCellSaveFuncTyp } = {
     name: handleNameCellSave,
     dataType: handleDataTypeCellSave,
-    defaultValue:handleDefaultValueCellSave
+    defaultValue: handleDefaultValueCellSave,
+  };
+
+  /** 导入文本 */
+  const importText = () => {
+    const variArr = convertTextToData(multiText);
+    if(variArr?.length){
+      dispatch(setTable(variArr));
+    }
   };
 
   return {
@@ -174,6 +186,9 @@ const useVariableTableLogic = () => {
     tableData,
     selectedRowKey,
     setSelectedRowKey,
+    multiText,
+    setMultiText,
+    importText,
     addTableEmptyRow,
     deleteTableRow,
   };

@@ -7,17 +7,14 @@ export interface IFiled {
   /** 新增一行时index固定传-1 序号从1自动自增  */
   index: number;
   /** 字段名称 */
-  name?: string;
+  name: string;
   /** 字段类型 */
-  dataType?: IFiled_DataType;
+  dataType: string;
   /** 默认值 */
-  defaultValue?: IFiled_DefaultValue;
+  defaultValue: string;
   /** 备注 */
-  comment?: string;
+  comment: string;
 }
-
-export type IFiled_DataType = "BOOL" | "INT";
-export type IFiled_DefaultValue = "false" | "FALSE" | "true" | "TRUE" | number;
 
 /** 每一列自定义编辑方式 是input框还是select等等 */
 export type RenderFormItemFuncType = (
@@ -35,8 +32,12 @@ export type ICusCellRenderColumnType = ColumnType<IFiled> & {
   /** 自定义列的渲染 */
   renderFormItem?: RenderFormItemFuncType;
   /** 当前单元格是否处于编辑中 */
-  isEditing:boolean;
+  isEditing: boolean;
 };
 
 /** 保存单元格数据的方法声明  返回设置的值*/
-export type HandleCellSaveFuncTyp = (rowKey: IFiled["index"], cellKey:keyof IFiled,value: IFiled[keyof IFiled]) => IFiled[keyof IFiled];
+export type HandleCellSaveFuncTyp = (
+  rowKey: IFiled["index"],
+  cellKey: keyof IFiled,
+  value: IFiled[keyof IFiled],
+) => IFiled[keyof IFiled] | undefined;
