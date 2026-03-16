@@ -16,6 +16,7 @@ const VariableTable: FC = () => {
     multiText,
     setMultiText,
     importText,
+    exportText,
     addTableEmptyRow,
     deleteTableRow,
   } = useVariableTableLogic();
@@ -65,7 +66,7 @@ const VariableTable: FC = () => {
         />
         <div className={styles["custom-input-buttons"]}>
           <Button onClick={importText}>Import</Button>
-          <Button>Export</Button>
+          <Button onClick={exportText}>Export</Button>
         </div>
       </div>
     </div>

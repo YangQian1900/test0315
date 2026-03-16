@@ -9,7 +9,7 @@ import type {
   IFiled,
 } from "@/interfaces/table";
 import { message } from "antd";
-import { checkDataTypeRelatedInfo, convertTextToData } from "./import-helper";
+import { checkDataTypeRelatedInfo, convertDataToText, convertTextToData } from "./import-helper";
 
 const useVariableTableLogic = () => {
   const tableData = useSelector((state: RootState) => state.table.data);
@@ -41,10 +41,10 @@ const useVariableTableLogic = () => {
     dispatch(
       addRow({
         index: -1,
-        name:'',
-        dataType:'',
-        defaultValue:'',
-        comment:''
+        name: "",
+        dataType: "",
+        defaultValue: "",
+        comment: "",
       }),
     );
   };
@@ -140,30 +140,30 @@ const useVariableTableLogic = () => {
   ) => {
     const valueTrimed = cellValue?.toString().trim();
     const matchedRow = findRowData(rowId);
-    if(!matchedRow) return;
+    if (!matchedRow) return;
     const oldValue = matchedRow?.[cellKey];
-    // 1、默认值不能为空
+    // 1、默认值为空
     if (!valueTrimed) {
-      message.error("Default Value can't be empty");
+      handleCellSave(rowId, cellKey, valueTrimed);
       setEditingCellKey("");
-      return oldValue;
+      return "";
     }
     // 2、输入默认值前必须类型不能为空
-     if (!matchedRow.dataType) {
+    if (!matchedRow.dataType) {
       message.error("Please input data type first");
       setEditingCellKey("");
       return oldValue;
     }
-    try{
+    try {
       // 3、检查默认值是否合法
       checkDataTypeRelatedInfo(matchedRow.dataType, valueTrimed);
 
       // 4、保存
       handleCellSave(rowId, cellKey, valueTrimed?.toLocaleUpperCase());
-    }catch(error:unknown){
+    } catch (error: unknown) {
       if (error instanceof Error) {
-      message.error(error.message);
-    }
+        message.error(error.message);
+      }
     }
   };
 
@@ -175,11 +175,29 @@ const useVariableTableLogic = () => {
 
   /** 导入文本 */
   const importText = () => {
-    const variArr = convertTextToData(multiText);
-    if(variArr?.length){
+    let variArr: IFiled[] | undefined;
+    try {
+      variArr = convertTextToData(multiText);
+    } catch (e: unknown) {
+      if (e instanceof Error) {
+        message.error(e.message);
+      }
+    }
+    if (variArr?.length) {
       dispatch(setTable(variArr));
     }
   };
+
+  const exportText = ()=>{
+    try{
+      const str = convertDataToText(tableData);
+      setMultiText(str);
+    }catch (e: unknown) {
+      if (e instanceof Error) {
+        message.error(e.message);
+      }
+    }
+  }
 
   return {
     mergedColumns,
@@ -189,6 +207,7 @@ const useVariableTableLogic = () => {
     multiText,
     setMultiText,
     importText,
+    exportText,
     addTableEmptyRow,
     deleteTableRow,
   };

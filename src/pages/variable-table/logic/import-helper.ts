@@ -1,5 +1,4 @@
 import type { IFiled } from "@/interfaces/table";
-import { message } from "antd";
 import { checkValues, DefaultValueMap, isDataType } from "./table";
 
 /** 文本开始字符串 */
@@ -7,7 +6,7 @@ const START_STR = "VAR";
 /** 文本结束字符串 */
 const END_STR = "END_VAR";
 /** 一行变量引入的格式正则 */
-const REG = /^(\w+)\s*:\s*(\w+)(?:\s*:=\s*([^;]+))?;(?:\s*\/\/\s*(.*))?$/;
+const REG = /^([^:]+)\s*:\s*(\w+)(?:\s*:=\s*([^;]+))?;\s*(?:\/\/\s*(.*))?$/;
 
 /** 将文本转化为字符串数组 这个过程中去掉 VAR END_VAR 以及空行*/
 export const textToStrArr = (text: string): string[] => {
@@ -29,6 +28,7 @@ export const textToStrArr = (text: string): string[] => {
 };
 
 export const getVarInfo = (str: string): IFiled => {
+    debugger;
   const matchArr = str.match(REG);
   if (!matchArr) {
     throw Error("Format error, cannot parse");
@@ -44,7 +44,10 @@ export const getVarInfo = (str: string): IFiled => {
 };
 
 /** 检查类型相关信息：即类型和默认值 */
-export const checkDataTypeRelatedInfo = (dataType:string, defaultValue:string) => {
+export const checkDataTypeRelatedInfo = (
+  dataType: string,
+  defaultValue: string,
+) => {
   // 检查类型
   if (!isDataType(dataType)) {
     throw Error(`Unsupported data type: ${dataType}`);
@@ -60,39 +63,48 @@ export const checkDataTypeRelatedInfo = (dataType:string, defaultValue:string) =
 };
 
 export const convertTextToData = (text: string) => {
-  try {
-    // 1、提取出变量定义的字符串数组
-    const strArr = textToStrArr(text);
-    if (strArr.length === 0) {
-      return;
-    }
-    const tempVarInfo: IFiled[] = [];
-    // 2、循环数组获取变量信息
-    for (const varStr of strArr) {
-      tempVarInfo.push(getVarInfo(varStr));
-    }
-    const varInfo: IFiled[] = [];
-    const names = new Set();
-    // 3、一行一行检查、调整数据
-    for (const index in tempVarInfo) {
-        const vari = tempVarInfo[index];
-        // 3.1 检查名字
-        if(names.has(vari.name)){
-            throw Error(`Duplicate name: ${vari.name}`);
-        }
-        // 3.2 检查数据类型和默认值
-        checkDataTypeRelatedInfo(vari.dataType, vari.defaultValue);
-        varInfo.push({
-            ...vari,
-            index:varInfo.length+1,
-            defaultValue:vari.defaultValue || DefaultValueMap[vari.dataType]
-        });
-    }
-    // 4、返回数据
-    return varInfo;
-  } catch (e: unknown) {
-    if (e instanceof Error) {
-      message.error(e.message);
-    }
+  // 1、提取出变量定义的字符串数组
+  const strArr = textToStrArr(text);
+  if (strArr.length === 0) {
+    return;
   }
+  const tempVarInfo: IFiled[] = [];
+  // 2、循环数组获取变量信息
+  for (const varStr of strArr) {
+    tempVarInfo.push(getVarInfo(varStr));
+  }
+  const varInfo: IFiled[] = [];
+  const names = new Set();
+  // 3、一行一行检查、调整数据
+  for (const index in tempVarInfo) {
+    const vari = tempVarInfo[index];
+    // 3.1 检查名字
+    if (names.has(vari.name)) {
+      throw Error(`Duplicate name: ${vari.name}`);
+    }
+    // 3.2 检查数据类型和默认值
+    checkDataTypeRelatedInfo(vari.dataType, vari.defaultValue);
+    varInfo.push({
+      ...vari,
+      index: varInfo.length + 1,
+      defaultValue: vari.defaultValue || DefaultValueMap[vari.dataType],
+    });
+  }
+  // 4、返回数据
+  return varInfo;
+};
+
+export const convertDataToText = (data: IFiled[]): string => {
+  if (data.length === 0) {
+    throw Error("No data need to be exported");
+  }
+  const outputs: string[] = [];
+  outputs.push(START_STR);
+  for (const vari of data) {
+    outputs.push(
+      `${vari.name} : ${vari.dataType}${vari.defaultValue ? ` := ${vari.defaultValue}` : ""};${vari.comment ? ` // ${vari.comment}` : ""}`,
+    );
+  }
+  outputs.push(END_STR);
+  return outputs.join("\n");
 };
