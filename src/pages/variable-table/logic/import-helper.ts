@@ -71,11 +71,16 @@ export const convertTextToData = (text: string) => {
     for (const varStr of strArr) {
       tempVarInfo.push(getVarInfo(varStr));
     }
-    console.log(tempVarInfo)
     const varInfo: IFiled[] = [];
+    const names = new Set();
     // 3、一行一行检查、调整数据
     for (const index in tempVarInfo) {
         const vari = tempVarInfo[index];
+        // 3.1 检查名字
+        if(names.has(vari.name)){
+            throw Error(`Duplicate name: ${vari.name}`);
+        }
+        // 3.2 检查数据类型和默认值
         checkDataTypeRelatedInfo(vari.dataType, vari.defaultValue);
         varInfo.push({
             ...vari,

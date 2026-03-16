@@ -54,41 +54,41 @@ const useVariableTableLogic = () => {
     dispatch(deleteRow(selectedRowKey));
   };
 
-  const findRowData = (rowKey: number) => {
-    const tableIndex = rowKey - 1;
+  const findRowData = (rowId: number) => {
+    const tableIndex = rowId - 1;
     return tableIndex >= 0 && tableIndex < tableData.length
-      ? tableData[rowKey - 1]
+      ? tableData[rowId - 1]
       : null;
   };
 
   /** 保存单元格数据-公用 */
-  const saveCell: HandleCellSaveFuncTyp = (rowKey, cellKey, value) => {
+  const saveCell: HandleCellSaveFuncTyp = (rowId, cellKey, cellVaue) => {
     dispatch(
       updateRow({
         // rowKey从1开始算的
-        index: findRowData(rowKey)?.index || -1,
-        [cellKey]: value,
+        index: findRowData(rowId)?.index || -1,
+        [cellKey]: cellVaue,
       }),
     );
-    return value;
+    return cellVaue;
   };
 
   /** 更新单元格数据-公用 */
-  const handleCellSave: HandleCellSaveFuncTyp = (rowKey, cellKey, value) => {
-    saveCell(rowKey, cellKey, value);
+  const handleCellSave: HandleCellSaveFuncTyp = (rowId, cellKey, cellValue) => {
+    saveCell(rowId, cellKey, cellValue);
     // 当前没有编辑单元格
     setEditingCellKey("");
-    return value;
+    return cellValue;
   };
 
   /** 保存姓名 */
   const handleNameCellSave: HandleCellSaveFuncTyp = (
-    rowKey,
+    rowId,
     cellKey,
-    value,
+    cellValue,
   ) => {
-    const valueTrimed = value?.toString().trim();
-    const oldValue = findRowData(rowKey)?.[cellKey];
+    const valueTrimed = cellValue?.toString().trim();
+    const oldValue = findRowData(rowId)?.[cellKey];
     //1、如果value为空 则提示姓名不能为空 且重置回原来的值
     if (!valueTrimed) {
       message.error("Name can't be empty");
@@ -100,23 +100,23 @@ const useVariableTableLogic = () => {
       (item) =>
         item.name?.toLocaleUpperCase() === valueTrimed.toLocaleUpperCase(),
     );
-    if (matched?.index !== undefined && matched.index !== rowKey) {
+    if (matched?.index !== undefined && matched.index !== rowId) {
       message.error("Name has existed, please input another name");
       return oldValue;
     } else {
       // 3、检查没有问题 保存
-      return handleCellSave(rowKey, cellKey, valueTrimed);
+      return handleCellSave(rowId, cellKey, valueTrimed);
     }
   };
 
   /** 保存数据类型 */
   const handleDataTypeCellSave: HandleCellSaveFuncTyp = (
-    rowKey,
+    rowId,
     cellKey,
-    value,
+    cellValue,
   ) => {
-    const valueUpper = value?.toString().toLocaleUpperCase();
-    const oldValue = findRowData(rowKey)?.[cellKey];
+    const valueUpper = cellValue?.toString().toLocaleUpperCase();
+    const oldValue = findRowData(rowId)?.[cellKey];
     //1、下拉框value不会为空 还是做一下判断
     if (!valueUpper) {
       message.error("Data Type can't be empty");
@@ -125,21 +125,21 @@ const useVariableTableLogic = () => {
     }
     // 2、类型改变的话 默认值需要改变
     if (oldValue !== valueUpper) {
-      saveCell(rowKey, "defaultValue", DefaultValueMap[valueUpper]);
+      saveCell(rowId, "defaultValue", DefaultValueMap[valueUpper]);
     }
 
     // 3、保存新值
-    return handleCellSave(rowKey, cellKey, valueUpper);
+    return handleCellSave(rowId, cellKey, valueUpper);
   };
 
   /** 保存默认值 */
   const handleDefaultValueCellSave: HandleCellSaveFuncTyp = (
-    rowKey,
+    rowId,
     cellKey,
-    value,
+    cellValue,
   ) => {
-    const valueTrimed = value?.toString().trim();
-    const matchedRow = findRowData(rowKey);
+    const valueTrimed = cellValue?.toString().trim();
+    const matchedRow = findRowData(rowId);
     if(!matchedRow) return;
     const oldValue = matchedRow?.[cellKey];
     // 1、默认值不能为空
@@ -159,7 +159,7 @@ const useVariableTableLogic = () => {
       checkDataTypeRelatedInfo(matchedRow.dataType, valueTrimed);
 
       // 4、保存
-      handleCellSave(rowKey, cellKey, valueTrimed?.toLocaleUpperCase());
+      handleCellSave(rowId, cellKey, valueTrimed?.toLocaleUpperCase());
     }catch(error:unknown){
       if (error instanceof Error) {
       message.error(error.message);

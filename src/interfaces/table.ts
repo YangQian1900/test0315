@@ -37,7 +37,7 @@ export type ICusCellRenderColumnType = ColumnType<IFiled> & {
 
 /** 保存单元格数据的方法声明  返回设置的值*/
 export type HandleCellSaveFuncTyp = (
-  rowKey: IFiled["index"],
+  rowId: IFiled["index"],
   cellKey: keyof IFiled,
-  value: IFiled[keyof IFiled],
+  cellValue: IFiled[keyof IFiled],
 ) => IFiled[keyof IFiled] | undefined;
