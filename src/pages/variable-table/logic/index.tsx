@@ -9,6 +9,7 @@ import type {
   IFiled,
 } from "@/interfaces/table";
 import { message } from "antd";
+import { isBoolString } from "@/utils/string-util";
 
 const useVariableTableLogic = () => {
   const tableData = useSelector((state: RootState) => state.table.data);
@@ -47,15 +48,21 @@ const useVariableTableLogic = () => {
     dispatch(deleteRow(selectedRowKey));
   };
 
-  /** 更新单元格数据-公用 */
-  const handleCellSave: HandleCellSaveFuncTyp = (rowKey, cellKey, value) => {
+  /** 保存单元格数据-公用 */
+  const saveCell: HandleCellSaveFuncTyp = (rowKey, cellKey, value) => {
     dispatch(
       updateRow({
         // rowKey从1开始算的
-        ...tableData[rowKey - 1],
+        index:tableData[rowKey - 1].index,
         [cellKey]: value,
       }),
     );
+    return value;
+  };
+
+  /** 更新单元格数据-公用 */
+  const handleCellSave: HandleCellSaveFuncTyp = (rowKey, cellKey, value) => {
+    saveCell(rowKey, cellKey, value);
     // 当前没有编辑单元格
     setEditingCellKey("");
     return value;
@@ -67,13 +74,13 @@ const useVariableTableLogic = () => {
     cellKey,
     value,
   ) => {
+    const valueTrimed = value?.toString().trim();
     //1、如果value为空 则提示姓名不能为空 且重置回原来的值
-    if (!value || !value.toString().trim()) {
+    if (!valueTrimed) {
       message.error("Name can't be empty");
       setEditingCellKey("");
       return tableData.find((item) => item.index === rowKey)?.[cellKey];
     }
-    const valueTrimed = value.toString().trim();
     // 2、value重复 则提示姓名重复
     const matched = tableData.find(
       (item) =>
@@ -88,8 +95,36 @@ const useVariableTableLogic = () => {
     }
   };
 
+  /** 保存数据类型 */
+  const handleDataTypeCellSave: HandleCellSaveFuncTyp = (
+    rowKey,
+    cellKey,
+    value,
+  ) => {
+    const valueUpper = value?.toString().toLocaleUpperCase();
+    const oldValue = tableData.find((item) => item.index === rowKey)?.[cellKey];
+    //1、下拉框value不会为空 还是做一下判断
+    if (!valueUpper) {
+      message.error("Data Type can't be empty");
+      setEditingCellKey("");
+      return oldValue;
+    }
+    // 2、类型改变的话 默认值需要改变
+    if (oldValue !== valueUpper) {
+      saveCell(
+        rowKey,
+        "defaultValue",
+        valueUpper === "BOOL" ? "TRUE" : 0,
+      );
+    }
+
+    // 3、保存新值
+    return handleCellSave(rowKey, cellKey, valueUpper);
+  };
+
   const handleCellSavePlus: { [props: string]: HandleCellSaveFuncTyp } = {
     name: handleNameCellSave,
+    dataType: handleDataTypeCellSave,
   };
 
   return {
