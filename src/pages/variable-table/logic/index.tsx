@@ -124,7 +124,7 @@ const useVariableTableLogic = () => {
         item.name?.toLocaleUpperCase() === valueTrimed.toLocaleUpperCase(),
     );
     if (matched?.index !== undefined && matched.index !== rowId) {
-      message.error("Name has existed, please input another name");
+      message.error("Name already exists");
       return oldValue;
     } else {
       // 3、检查没有问题 保存
@@ -190,6 +190,7 @@ const useVariableTableLogic = () => {
       if (error instanceof Error) {
         message.error(error.message);
       }
+      return oldValue;
     }
   };
 

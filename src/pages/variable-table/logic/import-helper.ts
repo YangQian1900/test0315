@@ -5,7 +5,7 @@ const START_STR = "VAR";
 /** 文本结束字符串 */
 const END_STR = "END_VAR";
 /** 一行变量引入的格式正则 */
-const REG = /^([^:]+)\s*:\s*(\w+)(?:\s*:=\s*([^;]+))?;\s*(?:\/\/\s*(.*))?$/;
+const REG = /^([^:]+)\s*:\s*(\w+)(?:\s*:=\s*([^;]+))?\s*;\s*(?:\/\/\s*(.*))?$/;
 
 /** 将文本转化为字符串数组 这个过程中去掉 VAR END_VAR 以及空行*/
 export const textToStrArr = (text: string): string[] => {
@@ -34,10 +34,10 @@ export const getVarInfo = (str: string): IFiled => {
   return {
     // 临时给个-1
     index: -1,
-    name: matchArr[1],
-    dataType: matchArr[2]?.toLocaleUpperCase(),
-    defaultValue: matchArr[3]?.toLocaleUpperCase(),
-    comment: matchArr[4],
+    name: matchArr[1].trim(),
+    dataType: matchArr[2]?.trim().toLocaleUpperCase(),
+    defaultValue: matchArr[3]?.trim().toLocaleUpperCase(),
+    comment: matchArr[4]?.trim(),
   };
 };
 
