@@ -15,7 +15,6 @@ const EditableRow = <T extends object>({
   useEffect(() => {
     // 数据变化时同步 Form
     form.setFieldsValue(record);
-    console.log("record-",record)
   }, [record, form]);
 
   return (

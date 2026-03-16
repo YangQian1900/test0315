@@ -47,5 +47,8 @@ export const columns: ICusCellRenderColumnType[] = [
     dataIndex: "comment",
     width: 200,
     isEditing: false,
+    renderFormItem: (_form, _record, save) => (
+      <Input onBlur={save} onPressEnter={save} />
+    ),
   },
 ];

@@ -156,7 +156,7 @@ const useVariableTableLogic = () => {
         return handleCellSave(rowKey, cellKey, valueTrimed);
       } else {
         message.error(
-          "When data type is INT, defaule value can only accept a number bewteen -2147483648 and 2147483647",
+          "When data type is INT, defaule value can only accept a integer bewteen -2147483648 and 2147483647",
         );
         return oldValue;
       }
