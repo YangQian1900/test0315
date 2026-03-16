@@ -38,12 +38,7 @@ const VariableTable: FC = () => {
         rowKey={(row) => row.index}
         onRow={(record) => ({
           onClick: () => {
-            // 点两下取消选中
-            if (record.index === editingRowId) {
-              setEditingRowId(-1);
-            } else {
-              setEditingRowId(record.index);
-            }
+            setEditingRowId(record.index);
           },
           record,
         })}

@@ -7,13 +7,13 @@ interface ITableState {
 
 const initialState: ITableState = {
   data: [
-    {
-      index: 1,
-      name: "Variable 1",
-      dataType: "BOOL",
-      defaultValue: "TRUE",
-      comment: "This is a comment",
-    },
+    // {
+    //   index: 1,
+    //   name: "Variable 1",
+    //   dataType: "BOOL",
+    //   defaultValue: "TRUE",
+    //   comment: "This is a comment",
+    // },
   ],
 };
 
