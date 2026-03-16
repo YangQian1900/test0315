@@ -38,5 +38,5 @@ export type ICusCellRenderColumnType = ColumnType<IFiled> & {
   isEditing:boolean;
 };
 
-/** 保存单元格数据的方法声明 */
-export type HandleCellSaveFuncTyp = (rowKey: IFiled["index"], cellKey:keyof IFiled,value: IFiled[keyof IFiled]) => void;
+/** 保存单元格数据的方法声明  返回设置的值*/
+export type HandleCellSaveFuncTyp = (rowKey: IFiled["index"], cellKey:keyof IFiled,value: IFiled[keyof IFiled]) => IFiled[keyof IFiled];
