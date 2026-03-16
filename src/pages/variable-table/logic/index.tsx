@@ -19,10 +19,14 @@ const useVariableTableLogic = () => {
   const dispatch = useDispatch<AppDispatch>();
   /** 导入的多行文本 */
   const [multiText, setMultiText] = useState("");
-  /** 当前选中行的key */
-  const [selectedRowKey, setSelectedRowKey] = useState(-1);
   /** 当前正在编辑的单元格key */
   const [editingCellKey, setEditingCellKey] = useState<string>("");
+  /** 正在编辑的行 也是当前选中的行 */
+  const [editingRowId, setEditingRowId] = useState<number>(-1);
+  const resetEditingId = () => {
+    setEditingRowId(-1);
+    setEditingCellKey("");
+  };
   const mergedColumns: ICusCellRenderColumnType<IFiled>[] = columns.map(
     (col) => {
       return {
@@ -30,9 +34,10 @@ const useVariableTableLogic = () => {
         onCell: (record) => ({
           onClick: () => {
             setEditingCellKey(col.dataIndex as string);
+            setEditingRowId(record.index);
           },
           isEditing:
-            col.dataIndex === editingCellKey && record.index === selectedRowKey,
+            col.dataIndex === editingCellKey && record.index === editingRowId,
           cellKey: col.dataIndex,
           rowIdName: "index",
           record,
@@ -59,8 +64,8 @@ const useVariableTableLogic = () => {
 
   /** 删除一行 */
   const deleteTableRow = () => {
-    dispatch(deleteRow(selectedRowKey));
-    setSelectedRowKey("");
+    dispatch(deleteRow(editingRowId));
+    resetEditingId();
   };
 
   const findRowData = (rowId: number) => {
@@ -93,8 +98,8 @@ const useVariableTableLogic = () => {
     cellValue,
   ) => {
     saveCell(rowId, cellKey, cellValue);
-    // 当前没有编辑单元格
-    setEditingCellKey("");
+    // 退出编辑
+    resetEditingId();
     return cellValue;
   };
 
@@ -109,7 +114,8 @@ const useVariableTableLogic = () => {
     //1、如果value为空 则提示姓名不能为空 且重置回原来的值
     if (!valueTrimed) {
       message.error("Name can't be empty");
-      setEditingCellKey("");
+      // 退出编辑
+      resetEditingId();
       return oldValue;
     }
     // 2、value重复 则提示姓名重复
@@ -132,13 +138,13 @@ const useVariableTableLogic = () => {
     cellKey,
     cellValue,
   ) => {
-    debugger;
     const valueUpper = cellValue?.toString().toLocaleUpperCase();
     const oldValue = findRowData(rowId)?.[cellKey];
     //1、下拉框value不会为空 还是做一下判断
     if (!valueUpper) {
       message.error("Data Type can't be empty");
-      setEditingCellKey("");
+      // 退出编辑
+      resetEditingId();
       return oldValue;
     }
     // 2、类型改变的话 默认值需要改变
@@ -163,13 +169,15 @@ const useVariableTableLogic = () => {
     // 1、默认值为空
     if (!valueTrimed) {
       handleCellSave(rowId, cellKey, valueTrimed);
-      setEditingCellKey("");
+      // 退出编辑
+      resetEditingId();
       return "";
     }
     // 2、输入默认值前必须类型不能为空
     if (!matchedRow.dataType) {
       message.error("Please input data type first");
-      setEditingCellKey("");
+      // 退出编辑
+      resetEditingId();
       return oldValue;
     }
     try {
@@ -222,8 +230,8 @@ const useVariableTableLogic = () => {
   return {
     mergedColumns,
     tableData,
-    selectedRowKey,
-    setSelectedRowKey,
+    editingRowId,
+    setEditingRowId,
     multiText,
     setMultiText,
     importText,

@@ -11,8 +11,8 @@ const VariableTable: FC = () => {
   const {
     tableData,
     mergedColumns,
-    selectedRowKey,
-    setSelectedRowKey,
+    editingRowId,
+    setEditingRowId,
     multiText,
     setMultiText,
     importText,
@@ -39,17 +39,17 @@ const VariableTable: FC = () => {
         onRow={(record) => ({
           onClick: () => {
             // 点两下取消选中
-            if (record.index === selectedRowKey) {
-              setSelectedRowKey(-1);
+            if (record.index === editingRowId) {
+              setEditingRowId(-1);
             } else {
-              setSelectedRowKey(record.index);
+              setEditingRowId(record.index);
             }
           },
           record,
         })}
         // 高亮选中行
         rowClassName={(record) =>
-          record.index === selectedRowKey ? "ant-table-row-selected" : ""
+          record.index === editingRowId ? "ant-table-row-selected" : ""
         }
       />
       <div className={styles["row-operation"]}>
