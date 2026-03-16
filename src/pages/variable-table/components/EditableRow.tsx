@@ -1,9 +1,23 @@
 import EditableRowContext from "@/context/editable-row-content";
 import Form from "antd/es/form";
-import { type FC } from "react";
+import { useEffect } from "react";
 
-const EditableRow: FC<{children: React.ReactNode }> = ({ children, ...props }) => {
-    const [form] = Form.useForm();
+const EditableRow = <T extends object>({
+  record,
+  children,
+  ...props
+}: {
+  record: T;
+  children: React.ReactNode;
+}) => {
+  const [form] = Form.useForm();
+
+  useEffect(() => {
+    // 数据变化时同步 Form
+    form.setFieldsValue(record);
+    console.log("record-",record)
+  }, [record, form]);
+
   return (
     <Form form={form} component={false}>
       <EditableRowContext.Provider value={form}>

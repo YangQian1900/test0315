@@ -9,7 +9,7 @@ import type {
   IFiled,
 } from "@/interfaces/table";
 import { message } from "antd";
-import { isBoolString } from "@/utils/string-util";
+import { isBoolString, isStrValidInt } from "@/utils/string-util";
 
 const useVariableTableLogic = () => {
   const tableData = useSelector((state: RootState) => state.table.data);
@@ -48,12 +48,19 @@ const useVariableTableLogic = () => {
     dispatch(deleteRow(selectedRowKey));
   };
 
+  const findRowData = (rowKey: number) => {
+    const tableIndex = rowKey - 1;
+    return tableIndex >= 0 && tableIndex < tableData.length
+      ? tableData[rowKey - 1]
+      : null;
+  };
+
   /** 保存单元格数据-公用 */
   const saveCell: HandleCellSaveFuncTyp = (rowKey, cellKey, value) => {
     dispatch(
       updateRow({
         // rowKey从1开始算的
-        index:tableData[rowKey - 1].index,
+        index: findRowData(rowKey)?.index || -1,
         [cellKey]: value,
       }),
     );
@@ -75,11 +82,12 @@ const useVariableTableLogic = () => {
     value,
   ) => {
     const valueTrimed = value?.toString().trim();
+    const oldValue = findRowData(rowKey)?.[cellKey];
     //1、如果value为空 则提示姓名不能为空 且重置回原来的值
     if (!valueTrimed) {
       message.error("Name can't be empty");
       setEditingCellKey("");
-      return tableData.find((item) => item.index === rowKey)?.[cellKey];
+      return oldValue;
     }
     // 2、value重复 则提示姓名重复
     const matched = tableData.find(
@@ -88,7 +96,7 @@ const useVariableTableLogic = () => {
     );
     if (matched?.index !== undefined && matched.index !== rowKey) {
       message.error("Name has existed, please input another name");
-      return valueTrimed;
+      return oldValue;
     } else {
       // 3、检查没有问题 保存
       return handleCellSave(rowKey, cellKey, valueTrimed);
@@ -102,7 +110,7 @@ const useVariableTableLogic = () => {
     value,
   ) => {
     const valueUpper = value?.toString().toLocaleUpperCase();
-    const oldValue = tableData.find((item) => item.index === rowKey)?.[cellKey];
+    const oldValue = findRowData(rowKey)?.[cellKey];
     //1、下拉框value不会为空 还是做一下判断
     if (!valueUpper) {
       message.error("Data Type can't be empty");
@@ -111,20 +119,54 @@ const useVariableTableLogic = () => {
     }
     // 2、类型改变的话 默认值需要改变
     if (oldValue !== valueUpper) {
-      saveCell(
-        rowKey,
-        "defaultValue",
-        valueUpper === "BOOL" ? "TRUE" : 0,
-      );
+      saveCell(rowKey, "defaultValue", valueUpper === "BOOL" ? "TRUE" : 0);
     }
 
     // 3、保存新值
     return handleCellSave(rowKey, cellKey, valueUpper);
   };
 
+  const handleDefaultValueCellSave: HandleCellSaveFuncTyp = (
+    rowKey,
+    cellKey,
+    value,
+  ) => {
+    const valueTrimed = value?.toString().trim();
+    const matchedRow = findRowData(rowKey);
+    const oldValue = matchedRow?.[cellKey];
+    //1、默认值不能为空
+    if (!valueTrimed) {
+      message.error("Default Value can't be empty");
+      setEditingCellKey("");
+      return oldValue;
+    }
+    //2、数据类型是BOOL时
+    if (matchedRow?.["dataType"] === "BOOL") {
+      if (isBoolString(valueTrimed)) {
+        return handleCellSave(rowKey, cellKey, valueTrimed.toUpperCase());
+      } else {
+        message.error(
+          "When data type is BOOL, defaule value can only accept false, FALSE, true, TRUE",
+        );
+        return oldValue;
+      }
+    } else {
+      // 是INT
+      if (isStrValidInt(valueTrimed)) {
+        return handleCellSave(rowKey, cellKey, valueTrimed);
+      } else {
+        message.error(
+          "When data type is INT, defaule value can only accept a number bewteen -2147483648 and 2147483647",
+        );
+        return oldValue;
+      }
+    }
+  };
+
   const handleCellSavePlus: { [props: string]: HandleCellSaveFuncTyp } = {
     name: handleNameCellSave,
     dataType: handleDataTypeCellSave,
+    defaultValue:handleDefaultValueCellSave
   };
 
   return {

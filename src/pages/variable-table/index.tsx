@@ -41,6 +41,7 @@ const VariableTable: FC = () => {
               setSelectedRowKey(record.index);
             }
           },
+          record
         })}
         // 高亮选中行
         rowClassName={(record) =>
