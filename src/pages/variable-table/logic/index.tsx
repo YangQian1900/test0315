@@ -8,7 +8,7 @@ import type {
   ICusCellRenderColumnType,
   IFiled,
 } from "@/interfaces/table";
-import EditableCell from "../components/EditableCell";
+import { message } from "antd";
 
 const useVariableTableLogic = () => {
   const tableData = useSelector((state: RootState) => state.table.data);
@@ -20,28 +20,16 @@ const useVariableTableLogic = () => {
   const mergedColumns: ICusCellRenderColumnType[] = columns.map((col) => {
     return {
       ...col,
-      onCell: () => ({
+      onCell: (record) => ({
         onClick: () => {
           setEditingCellKey(col.dataIndex);
         },
+        isEditing: col.dataIndex === editingCellKey,
+        cellKey: col.dataIndex,
+        record,
+        renderFormItem: col.renderFormItem,
+        onCellSave: handleCellSavePlus[col.dataIndex] || handleCellSave,
       }),
-      render: (text, record) => {
-        return col.renderFormItem ? (
-          <EditableCell
-            isEditing={col.dataIndex === editingCellKey}
-            cellKey={col.dataIndex}
-            record={record}
-            renderFormItem={col.renderFormItem}
-            onCellSave={(rowKey, cellKey, value) => {
-              handleCellSave(rowKey, cellKey, value);
-            }}
-          >
-            {text}
-          </EditableCell>
-        ) : (
-          <>{text}</>
-        );
-      },
     };
   });
 
@@ -59,16 +47,45 @@ const useVariableTableLogic = () => {
     dispatch(deleteRow(selectedRowKey));
   };
 
-  /** 更新单元格数据 */
+  /** 更新单元格数据-公用 */
   const handleCellSave: HandleCellSaveFuncTyp = (rowKey, cellKey, value) => {
     dispatch(
       updateRow({
-        ...tableData[rowKey],
+        // rowKey从1开始算的
+        ...tableData[rowKey-1],
         [cellKey]: value,
       }),
     );
     // 当前没有编辑单元格
     setEditingCellKey("");
+    return value;
+  };
+
+  /** 保存姓名 */
+  const handleNameCellSave: HandleCellSaveFuncTyp = (
+    rowKey,
+    cellKey,
+    value,
+  ) => {
+    //1、如果value为空 则提示姓名不能为空 且重置回原来的值
+    if (!value) {
+      // 当前没有编辑单元格
+      setEditingCellKey("");
+      return tableData.find(item=>item.index === rowKey)?.[cellKey];
+    }
+    // 2、value重复 则提示姓名重复
+    const matched = tableData.find((item) => item.name === value);
+    if (matched?.index !== undefined && matched.index !== rowKey) {
+      message.error("Name has existed, please input another name");
+      return value;
+    } else {
+      // 3、检查没有问题 保存
+      return handleCellSave(rowKey, cellKey, value);
+    }
+  };
+
+  const handleCellSavePlus: { [props: string]: HandleCellSaveFuncTyp } = {
+    name: handleNameCellSave,
   };
 
   return {

@@ -37,7 +37,7 @@ export const tableSlice = createSlice({
         },
         updateRow:(state,action:PayloadAction<IFiled>)=>{
             const index = state.data.findIndex(item=>item.index === action.payload.index);
-            if(index !== 1){
+            if(index !== -1){
                 state.data[index] = {
                     ...state.data[index],
                     ...action.payload

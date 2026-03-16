@@ -32,7 +32,8 @@ const EditableCell: FC<EditableCellProps> = ({
       // 1、表格校验
       const value = await form.validateFields([cellKey]);
       // 2、保存单元格的值
-      onCellSave(record.index,cellKey, value[cellKey]);
+      const savedValue = onCellSave(record.index,cellKey, value[cellKey]);
+      form.setFieldValue(cellKey,savedValue);
     } catch (err) {
       console.log("验证失败", err);
     }

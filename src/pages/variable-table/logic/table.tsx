@@ -1,4 +1,5 @@
 import type { ICusCellRenderColumnType } from "@/interfaces/table";
+import Input from "antd/es/input";
 
 export const columns: ICusCellRenderColumnType[] = [
   {
@@ -12,6 +13,9 @@ export const columns: ICusCellRenderColumnType[] = [
     dataIndex: "name",
     width: 200,
     isEditing: false,
+    renderFormItem: (_form, _record, save) => (
+        <Input onBlur={save} onPressEnter={save} />
+      ),
   },
   {
     title: "Data Type",
@@ -32,3 +36,5 @@ export const columns: ICusCellRenderColumnType[] = [
     isEditing: false,
   },
 ];
+
+
