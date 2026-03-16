@@ -52,7 +52,7 @@ const useVariableTableLogic = () => {
     dispatch(
       updateRow({
         // rowKey从1开始算的
-        ...tableData[rowKey-1],
+        ...tableData[rowKey - 1],
         [cellKey]: value,
       }),
     );
@@ -68,19 +68,23 @@ const useVariableTableLogic = () => {
     value,
   ) => {
     //1、如果value为空 则提示姓名不能为空 且重置回原来的值
-    if (!value) {
-      // 当前没有编辑单元格
+    if (!value || !value.toString().trim()) {
+      message.error("Name can't be empty");
       setEditingCellKey("");
-      return tableData.find(item=>item.index === rowKey)?.[cellKey];
+      return tableData.find((item) => item.index === rowKey)?.[cellKey];
     }
+    const valueTrimed = value.toString().trim();
     // 2、value重复 则提示姓名重复
-    const matched = tableData.find((item) => item.name === value);
+    const matched = tableData.find(
+      (item) =>
+        item.name?.toLocaleUpperCase() === valueTrimed.toLocaleUpperCase(),
+    );
     if (matched?.index !== undefined && matched.index !== rowKey) {
       message.error("Name has existed, please input another name");
-      return value;
+      return valueTrimed;
     } else {
       // 3、检查没有问题 保存
-      return handleCellSave(rowKey, cellKey, value);
+      return handleCellSave(rowKey, cellKey, valueTrimed);
     }
   };
 
