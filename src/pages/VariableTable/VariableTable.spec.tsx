@@ -20,6 +20,23 @@ const VariableTableWithProvider = () => {
     </Provider>
   );
 };
+const user = userEvent.setup();
+const getData = () => {
+  return store.getState().table.data;
+};
+const addNewRow = async () => {
+  const addButton = screen.getByRole("button", { name: /Add Row/i });
+  await user.click(addButton);
+};
+const deleteRow = async () => {
+  const addButton = screen.getByRole("button", { name: /Delete Row/i });
+  await user.click(addButton);
+};
+const selectRow = async (rowId: number) => {
+  const row = document.querySelector(`[data-row-key="${rowId}"]`);
+  expect(row).toBeInTheDocument();
+  await user.click(row!);
+};
 
 describe("variable table", () => {
   // 界面要素齐全
@@ -37,25 +54,24 @@ describe("variable table", () => {
     );
     expect(headers.some((h) => h.textContent?.includes("Comment"))).toBe(true);
     // 检查按钮
-    expect(screen.getByText("Add Row")).toBeInTheDocument();
-    expect(screen.getByText("Delete Row")).toBeInTheDocument();
-    expect(screen.getByText("Import")).toBeInTheDocument();
-    expect(screen.getByText("Export")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /Add Row/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /Delete Row/i }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Import/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Export/i })).toBeInTheDocument();
     // 检查文本输入区存在
     expect(screen.getByRole("textbox")).toBeInTheDocument();
   });
 
-  const addNewRow = async()=>{
-    const user = userEvent.setup();
-    const addButton = screen.getByRole("button", { name: /Add Row/i });
-    await user.click(addButton);
-  };
   // 综合测试
   it("Integration Testing", async () => {
     render(<VariableTableWithProvider />);
     const user = userEvent.setup();
     // 1、未新增之前数据为0条
-    expect(store.getState().table.data.length).toBe(0);
+    expect(getData().length).toBe(0);
     // 2、新增一行
     await addNewRow();
     // 2.1 UI上有一行store中也有一行
@@ -63,21 +79,20 @@ describe("variable table", () => {
       `[data-row-key="1"]`,
     ) as HTMLElement;
     expect(firstRow).toBeInTheDocument();
-    expect(store.getState().table.data.length).toBe(1);
+    expect(getData().length).toBe(1);
     // 2.2 Index列为1其余列为空
     const cellsOfFirstRow = within(firstRow).getAllByRole("cell");
     expect(cellsOfFirstRow.length === 5);
-    expect(cellsOfFirstRow[0]).toHaveTextContent("1");
-    expect(cellsOfFirstRow[1]).toHaveTextContent("");
-    expect(cellsOfFirstRow[2]).toHaveTextContent("");
-    expect(cellsOfFirstRow[3]).toHaveTextContent("");
-    expect(cellsOfFirstRow[4]).toHaveTextContent("");
-    const newEmptyRow = store.getState().table.data[0];
+    for (const index of [...Array(5).keys()]) {
+      if (index == 0) {
+        expect(cellsOfFirstRow[index]).toHaveTextContent("1");
+      } else {
+        expect(cellsOfFirstRow[index]).toHaveTextContent("");
+      }
+    }
+    const newEmptyRow = getData()[0];
     expect(newEmptyRow.index).toBe(1);
-    expect(newEmptyRow.name).toBe("");
-    expect(newEmptyRow.dataType).toBe("");
-    expect(newEmptyRow.defaultValue).toBe("");
-    expect(newEmptyRow.comment).toBe("");
+    expect(newEmptyRow.name||newEmptyRow.dataType||newEmptyRow.defaultValue||newEmptyRow.comment).toBe("");
     // 3、编辑2中新增行的name列
     const name1 = "counter";
     await user.click(cellsOfFirstRow[1]);
@@ -87,7 +102,7 @@ describe("variable table", () => {
     // 3.2 保存非空白name
     await user.type(firstNameInput, name1);
     fireEvent.blur(firstNameInput);
-    expect(store.getState().table.data[0].name).toBe(name1);
+    expect(getData()[0].name).toBe(name1);
     expect(cellsOfFirstRow[1]).toHaveTextContent(name1);
     // 3.3 再次编辑姓名输入为空
     await user.type(firstNameInput, " ");
@@ -99,23 +114,23 @@ describe("variable table", () => {
       `[data-row-key="2"]`,
     ) as HTMLElement;
     expect(secondRow).toBeInTheDocument();
-    expect(store.getState().table.data.length).toBe(2);
+    expect(getData().length).toBe(2);
     // 4.1 第二行序号递增
-    expect(store.getState().table.data[1].index).toBe(2);
+    expect(getData()[1].index).toBe(2);
     // 4.2编辑第二行中的name并尝试保存和第一行相同的名字
     const cellsOfSecondRow = within(secondRow).getAllByRole("cell");
     await user.click(cellsOfSecondRow[1]);
     let secondNameInput = within(cellsOfSecondRow[1]).getByRole("textbox");
     await user.type(secondNameInput, name1);
     fireEvent.blur(secondNameInput);
-    expect(store.getState().table.data[1].name).not.toBe(name1);
+    expect(getData()[1].name).not.toBe(name1);
     expect(cellsOfSecondRow[1]).not.toHaveTextContent(name1);
     // 4.3 重新输入一个不重复的名字保存
     await user.click(cellsOfSecondRow[1]);
     secondNameInput = within(cellsOfSecondRow[1]).getByRole("textbox");
     await user.type(secondNameInput, "newcouner");
     fireEvent.blur(secondNameInput);
-    expect(store.getState().table.data[1].name).toBe("newcouner");
+    expect(getData()[1].name).toBe("newcouner");
     expect(cellsOfSecondRow[1]).toHaveTextContent("newcouner");
     // 5、编辑第二行的data type
     await user.click(cellsOfSecondRow[2]);
@@ -130,9 +145,9 @@ describe("variable table", () => {
     expect(boolOption).toBeInTheDocument();
     await user.click(boolOption!);
     fireEvent.blur(secondDataTypeSelect);
-    expect(store.getState().table.data[1].dataType).toBe("BOOL");
+    expect(getData()[1].dataType).toBe("BOOL");
     expect(cellsOfSecondRow[2]).toHaveTextContent("BOOL");
-    expect(store.getState().table.data[1].defaultValue).toBe("TRUE");
+    expect(getData()[1].defaultValue).toBe("TRUE");
     expect(cellsOfSecondRow[3]).toHaveTextContent("TRUE");
     // 5.2 在类型是BOOL编辑第二行的默认值
     const tempValidBool = ["FALSE ", "false", "True"];
@@ -146,14 +161,14 @@ describe("variable table", () => {
       await user.type(secondDefaultValueInput, testValue);
       fireEvent.blur(secondDefaultValueInput);
       if (tempValidBool.includes(testValue)) {
-        expect(store.getState().table.data[1].defaultValue).toBe(
+        expect(getData()[1].defaultValue).toBe(
           testValue.trim().toLocaleUpperCase(),
         );
         expect(cellsOfSecondRow[3]).toHaveTextContent(
           testValue.trim().toLocaleUpperCase(),
         );
       } else {
-        expect(store.getState().table.data[1].defaultValue).not.toBe(
+        expect(getData()[1].defaultValue).not.toBe(
           testValue.trim().toLocaleUpperCase(),
         );
         expect(cellsOfSecondRow[3]).not.toHaveTextContent(
@@ -170,9 +185,9 @@ describe("variable table", () => {
     expect(boolOption).toBeInTheDocument();
     await user.click(boolOption!);
     fireEvent.blur(secondDataTypeSelect);
-    expect(store.getState().table.data[1].dataType).toBe("INT");
+    expect(getData()[1].dataType).toBe("INT");
     expect(cellsOfSecondRow[2]).toHaveTextContent("INT");
-    expect(store.getState().table.data[1].defaultValue).toBe("0");
+    expect(getData()[1].defaultValue).toBe("0");
     expect(cellsOfSecondRow[3]).toHaveTextContent("0");
     // 5.2 在类型是INT编辑第二行的默认值
     const tempValidInt = ["0", "2147483647", "-2147483648"];
@@ -186,14 +201,10 @@ describe("variable table", () => {
       await user.type(secondDefaultValueInput, testValue);
       fireEvent.blur(secondDefaultValueInput);
       if (tempValidInt.includes(testValue)) {
-        expect(store.getState().table.data[1].defaultValue).toBe(
-          testValue.trim(),
-        );
+        expect(getData()[1].defaultValue).toBe(testValue.trim());
         expect(cellsOfSecondRow[3]).toHaveTextContent(testValue.trim());
       } else {
-        expect(store.getState().table.data[1].defaultValue).not.toBe(
-          testValue.trim(),
-        );
+        expect(getData()[1].defaultValue).not.toBe(testValue.trim());
         expect(cellsOfSecondRow[3]).not.toHaveTextContent(testValue.trim());
       }
     }
