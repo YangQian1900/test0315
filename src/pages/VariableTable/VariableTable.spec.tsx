@@ -1,5 +1,12 @@
 import { describe, it, expect } from "vitest";
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import {
+  fireEvent,
+  prettyDOM,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import "@testing-library/jest-dom";
 import VariableTable from ".";
 import { Provider } from "react-redux";
@@ -74,36 +81,65 @@ describe("variable table", () => {
     expect(firstNameInput).toBeInTheDocument();
     // 3.2 保存非空白name
     await user.type(firstNameInput, name1);
-    await fireEvent.blur(firstNameInput);
+    fireEvent.blur(firstNameInput);
     expect(store.getState().table.data[0].name).toBe(name1);
     expect(cellsOfFirstRow[1]).toHaveTextContent(name1);
     // 3.3 再次编辑姓名输入为空
     await user.type(firstNameInput, " ");
-    await fireEvent.blur(firstNameInput);
+    fireEvent.blur(firstNameInput);
     expect(cellsOfFirstRow[1]).toHaveTextContent(name1);
     //4、再新增一行
     await user.click(addButton);
     const secondRow = document.querySelector(
       `[data-row-key="2"]`,
     ) as HTMLElement;
-     expect(secondRow).toBeInTheDocument();
-     expect(store.getState().table.data.length).toBe(2);
-     // 4.1 第二行序号递增
-     expect(store.getState().table.data[1].index).toBe(2);
-     // 4.2编辑第二行中的name并尝试保存和第一行相同的名字
-     const cellsOfSecondRow = within(secondRow).getAllByRole("cell");
-     await user.click(cellsOfSecondRow[1]);
-     let secondNameInput = within(cellsOfSecondRow[1]).getByRole("textbox");
-     await user.type(secondNameInput, name1);
-     await fireEvent.blur(secondNameInput);
-     expect(store.getState().table.data[1].name).not.toBe(name1);
-     expect(cellsOfSecondRow[1]).not.toHaveTextContent(name1);
-     // 4.3 重新输入一个不重复的名字保存
+    expect(secondRow).toBeInTheDocument();
+    expect(store.getState().table.data.length).toBe(2);
+    // 4.1 第二行序号递增
+    expect(store.getState().table.data[1].index).toBe(2);
+    // 4.2编辑第二行中的name并尝试保存和第一行相同的名字
+    const cellsOfSecondRow = within(secondRow).getAllByRole("cell");
+    await user.click(cellsOfSecondRow[1]);
+    let secondNameInput = within(cellsOfSecondRow[1]).getByRole("textbox");
+    await user.type(secondNameInput, name1);
+    fireEvent.blur(secondNameInput);
+    expect(store.getState().table.data[1].name).not.toBe(name1);
+    expect(cellsOfSecondRow[1]).not.toHaveTextContent(name1);
+    // 4.3 重新输入一个不重复的名字保存
     await user.click(cellsOfSecondRow[1]);
     secondNameInput = within(cellsOfSecondRow[1]).getByRole("textbox");
     await user.type(secondNameInput, "newcouner");
-    await fireEvent.blur(secondNameInput);
+    fireEvent.blur(secondNameInput);
     expect(store.getState().table.data[1].name).toBe("newcouner");
     expect(cellsOfSecondRow[1]).toHaveTextContent("newcouner");
+    // 5、编辑第二行的data type
+    await user.click(cellsOfSecondRow[2]);
+    let secondDataTypeSelect = within(cellsOfSecondRow[2]).getByRole(
+      "combobox",
+    );
+    expect(secondDataTypeSelect).toBeInTheDocument();
+    // 5.1 选中BOOL
+    await user.click(secondDataTypeSelect);
+    // 无语了antd 会生成两个下拉列表 通过role=listbox找到的元素是不能触发改变的
+    let boolOption = document.querySelector("[title='BOOL']");
+    expect(boolOption).toBeInTheDocument();
+    await user.click(boolOption!);
+    fireEvent.blur(secondDataTypeSelect);
+    expect(store.getState().table.data[1].dataType).toBe("BOOL");
+    expect(cellsOfSecondRow[2]).toHaveTextContent("BOOL");
+    expect(store.getState().table.data[1].defaultValue).toBe("TRUE");
+    expect(cellsOfSecondRow[3]).toHaveTextContent("TRUE");
+    // 5.2 选中INT
+    await user.click(cellsOfSecondRow[2]);
+    secondDataTypeSelect = within(cellsOfSecondRow[2]).getByRole("combobox");
+    await user.click(secondDataTypeSelect);
+    boolOption = document.querySelector("[title='INT']");
+    expect(boolOption).toBeInTheDocument();
+    await user.click(boolOption!);
+    fireEvent.blur(secondDataTypeSelect);
+    expect(store.getState().table.data[1].dataType).toBe("INT");
+    expect(cellsOfSecondRow[2]).toHaveTextContent("INT");
+    expect(store.getState().table.data[1].defaultValue).toBe("0");
+    expect(cellsOfSecondRow[3]).toHaveTextContent("0");
   });
 });

@@ -43,7 +43,7 @@ export const columns: ICusCellRenderColumnType<IFiled>[] = [
           { label: "BOOL", value: "BOOL" },
           { label: "INT", value: "INT" },
         ]}
-        onChange={save}
+       onBlur={save}
       />
     ),
   },
