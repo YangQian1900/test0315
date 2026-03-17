@@ -30,10 +30,10 @@ function EditableCell<T extends object, K extends keyof T>({
 }: EditableCellProps<T, K>) {
   const form = useContext(FormContext);
 
-  const save = async () => {
+  const save = () => {
     try {
       // 1、获取单元格编辑之后的值
-      const cellValue = await form.getFieldValue(cellKey);
+      const cellValue = form.getFieldValue(cellKey);
       // 2、保存单元格的值
       const savedValue = onCellSave(record[rowIdName], cellKey, cellValue);
       form.setFieldValue(cellKey, savedValue);
