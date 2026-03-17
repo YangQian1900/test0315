@@ -14,7 +14,7 @@ export interface IFiled {
   defaultValue: string;
   /** 备注 */
   comment: string;
-} 
+}
 
 export const columns: ICusCellRenderColumnType<IFiled>[] = [
   {
@@ -72,7 +72,7 @@ export const DATA_TYPES = ["BOOL", "INT"] as const;
 type DataType = (typeof DATA_TYPES)[number];
 
 export const isDataType = (str: string): str is DataType => {
-  return DATA_TYPES.some((x) => x === str);
+  return DATA_TYPES.some((x) => x === str?.toLocaleUpperCase());
 };
 
 /** 数据类型对应的默认值 */
@@ -82,12 +82,13 @@ export const DefaultValueMap: Record<string, string> = {
 };
 
 /** 数据类型对应的可选值 */
-export const checkValues = {
-  BOOL: (str: string) => {
-    return ["TRUE", "FALSE"].includes(str?.toLocaleUpperCase());
-  },
-  INT: (str: string) => {
-    const num = Number(str);
+export const checkValues = (dataType: string,defaultValue:string) => {
+  const dataTypeUpperCase = dataType?.toLocaleUpperCase();
+  const defaultValueUpperCase = defaultValue?.toLocaleUpperCase();
+  if (dataTypeUpperCase === "BOOL") {
+    return ["TRUE", "FALSE"].includes(defaultValueUpperCase);
+  } else {
+    const num = Number(defaultValueUpperCase);
     return Number.isInteger(num) && num >= -2147483648 && num <= 2147483647;
-  },
+  }
 };

@@ -1,5 +1,9 @@
 import { describe, it, expect } from "vitest";
-import { getVarInfo, textToStrArr } from "./import-helper";
+import {
+  checkDataTypeRelatedInfo,
+  getVarInfo,
+  textToStrArr,
+} from "./import-helper";
 
 describe("textToStrArr", () => {
   //#region 测试数据
@@ -73,5 +77,22 @@ describe("getVarInfo", () => {
   });
   it("should throw when string is invalid", () => {
     expect(() => getVarInfo(invalidStr1)).toThrow();
+  });
+});
+
+describe("checkDataTypeRelatedInfo", () => {
+  it("normal situation", () => {
+    expect(() => checkDataTypeRelatedInfo("BOOL", "TRUE")).not.toThrow();
+    expect(() => checkDataTypeRelatedInfo("bool", "TRUE")).not.toThrow();
+    expect(() => checkDataTypeRelatedInfo("INT", "0")).not.toThrow();
+  });
+  it("should throw for invalid type", () => {
+    expect(() => checkDataTypeRelatedInfo("STRING", "abc")).toThrow();
+  });
+
+  it("should throw for invalid default value", () => {
+    expect(() => checkDataTypeRelatedInfo("BOOL", "123")).toThrow();
+    expect(() => checkDataTypeRelatedInfo("INT", "abc")).toThrow();
+    expect(() => checkDataTypeRelatedInfo("INT", "1.3")).toThrow();
   });
 });

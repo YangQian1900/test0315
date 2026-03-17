@@ -55,7 +55,7 @@ export const checkDataTypeRelatedInfo = (
     throw Error(`Unsupported data type: ${dataType}`);
   }
   // 检查类型对应的默认值是否OK
-  if (defaultValue && !checkValues[dataType](defaultValue)) {
+  if (defaultValue && !checkValues(dataType, defaultValue)) {
     const error =
       dataType === "BOOL"
         ? "When data type is BOOL, defaule value can only accept false, FALSE, true, TRUE"
