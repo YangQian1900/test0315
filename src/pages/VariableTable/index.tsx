@@ -4,8 +4,8 @@ import useVariableTableLogic from "./logic";
 import Table from "antd/es/table";
 import { Button } from "antd";
 import TextArea from "antd/es/input/TextArea";
-import EditableRow from "../../components/EditableRow";
-import EditableCell from "../../components/EditableCell";
+import EditableRow from "@/components/EditableRow";
+import EditableCell from "@/components/EditableCell";
 
 const VariableTable: FC = () => {
   const {
@@ -28,25 +28,27 @@ const VariableTable: FC = () => {
   };
   return (
     <div className={styles.center}>
-      <Table
-        dataSource={tableData}
-        columns={mergedColumns}
-        components={tableComponents}
-        bordered
-        className={styles.table}
-        pagination={false}
-        rowKey={(row) => row.index}
-        onRow={(record) => ({
-          onClick: () => {
-            setEditingRowId(record.index);
-          },
-          record,
-        })}
-        // 高亮选中行
-        rowClassName={(record) =>
-          record.index === editingRowId ? "ant-table-row-selected" : ""
-        }
-      />
+      <div className={styles.table}>
+        <Table
+          dataSource={tableData}
+          columns={mergedColumns}
+          components={tableComponents}
+          bordered
+          pagination={false}
+          rowKey={(row) => row.index}
+          onRow={(record) => ({
+            onClick: () => {
+              setEditingRowId(record.index);
+            },
+            record,
+          })}
+          // 高亮选中行
+          rowClassName={(record) =>
+            record.index === editingRowId ? "ant-table-row-selected" : ""
+          }
+          scroll={{ y: 250, x: 900 }}
+        />
+      </div>
       <div className={styles["row-operation"]}>
         <Button onClick={addTableEmptyRow}>Add Row</Button>
         <Button onClick={deleteTableRow}>Delete Row</Button>

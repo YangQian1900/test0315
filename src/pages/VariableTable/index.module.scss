@@ -10,7 +10,8 @@
   $content-width:900px;
 
   .table{
-    width: $content-width;
+    width: $content-width + 1px;
+    height: 300px;
   }
 
   .row-operation {
