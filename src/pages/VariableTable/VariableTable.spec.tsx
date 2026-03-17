@@ -44,6 +44,12 @@ describe("variable table", () => {
     // 检查文本输入区存在
     expect(screen.getByRole("textbox")).toBeInTheDocument();
   });
+
+  const addNewRow = async()=>{
+    const user = userEvent.setup();
+    const addButton = screen.getByRole("button", { name: /Add Row/i });
+    await user.click(addButton);
+  };
   // 综合测试
   it("Integration Testing", async () => {
     render(<VariableTableWithProvider />);
@@ -51,8 +57,7 @@ describe("variable table", () => {
     // 1、未新增之前数据为0条
     expect(store.getState().table.data.length).toBe(0);
     // 2、新增一行
-    const addButton = screen.getByRole("button", { name: /Add Row/i });
-    await user.click(addButton);
+    await addNewRow();
     // 2.1 UI上有一行store中也有一行
     const firstRow = document.querySelector(
       `[data-row-key="1"]`,
@@ -89,7 +94,7 @@ describe("variable table", () => {
     fireEvent.blur(firstNameInput);
     expect(cellsOfFirstRow[1]).toHaveTextContent(name1);
     //4、再新增一行
-    await user.click(addButton);
+    await addNewRow();
     const secondRow = document.querySelector(
       `[data-row-key="2"]`,
     ) as HTMLElement;
@@ -129,7 +134,35 @@ describe("variable table", () => {
     expect(cellsOfSecondRow[2]).toHaveTextContent("BOOL");
     expect(store.getState().table.data[1].defaultValue).toBe("TRUE");
     expect(cellsOfSecondRow[3]).toHaveTextContent("TRUE");
-    // 5.2 选中INT
+    // 5.2 在类型是BOOL编辑第二行的默认值
+    const tempValidBool = ["FALSE ", "false", "True"];
+    const tempInvalidBool = ["12", "mm"];
+    for (const testValue of [...tempValidBool, ...tempInvalidBool]) {
+      await user.click(cellsOfSecondRow[3]);
+      const secondDefaultValueInput = within(cellsOfSecondRow[3]).getByRole(
+        "textbox",
+      );
+      await user.clear(secondDefaultValueInput);
+      await user.type(secondDefaultValueInput, testValue);
+      fireEvent.blur(secondDefaultValueInput);
+      if (tempValidBool.includes(testValue)) {
+        expect(store.getState().table.data[1].defaultValue).toBe(
+          testValue.trim().toLocaleUpperCase(),
+        );
+        expect(cellsOfSecondRow[3]).toHaveTextContent(
+          testValue.trim().toLocaleUpperCase(),
+        );
+      } else {
+        expect(store.getState().table.data[1].defaultValue).not.toBe(
+          testValue.trim().toLocaleUpperCase(),
+        );
+        expect(cellsOfSecondRow[3]).not.toHaveTextContent(
+          testValue.trim().toLocaleUpperCase(),
+        );
+      }
+    }
+
+    // 5.3 选中INT
     await user.click(cellsOfSecondRow[2]);
     secondDataTypeSelect = within(cellsOfSecondRow[2]).getByRole("combobox");
     await user.click(secondDataTypeSelect);
@@ -141,5 +174,28 @@ describe("variable table", () => {
     expect(cellsOfSecondRow[2]).toHaveTextContent("INT");
     expect(store.getState().table.data[1].defaultValue).toBe("0");
     expect(cellsOfSecondRow[3]).toHaveTextContent("0");
+    // 5.2 在类型是INT编辑第二行的默认值
+    const tempValidInt = ["0", "2147483647", "-2147483648"];
+    const tempInvalidInt = ["0.7", "99.99", "2147483648", "-2147483649"];
+    for (const testValue of [...tempValidInt, ...tempInvalidInt]) {
+      await user.click(cellsOfSecondRow[3]);
+      const secondDefaultValueInput = within(cellsOfSecondRow[3]).getByRole(
+        "textbox",
+      );
+      await user.clear(secondDefaultValueInput);
+      await user.type(secondDefaultValueInput, testValue);
+      fireEvent.blur(secondDefaultValueInput);
+      if (tempValidInt.includes(testValue)) {
+        expect(store.getState().table.data[1].defaultValue).toBe(
+          testValue.trim(),
+        );
+        expect(cellsOfSecondRow[3]).toHaveTextContent(testValue.trim());
+      } else {
+        expect(store.getState().table.data[1].defaultValue).not.toBe(
+          testValue.trim(),
+        );
+        expect(cellsOfSecondRow[3]).not.toHaveTextContent(testValue.trim());
+      }
+    }
   });
 });
