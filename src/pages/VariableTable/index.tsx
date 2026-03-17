@@ -55,11 +55,12 @@ const VariableTable: FC = () => {
       </div>
       <div className={styles["custom-input"]}>
         <TextArea
-          autoSize={{ minRows: 5, maxRows: Number.MAX_SAFE_INTEGER }}
+          autoSize={{ minRows: 5, maxRows: 5 }}
           value={multiText}
           onChange={(event) => {
             setMultiText(event.target.value);
           }}
+          style={{ overflowY: "auto" }}
         />
         <div className={styles["custom-input-buttons"]}>
           <Button onClick={importText}>Import</Button>
