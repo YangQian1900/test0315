@@ -15,14 +15,18 @@ export const textToStrArr = (text: string): string[] => {
   const tempArr = text
     .trim()
     .split("\n")
-    .map((i) => i.trim());
+    .map((i) => i.trim())
+    .filter((item) => item);
   if (tempArr[0] !== START_STR || tempArr[tempArr.length - 1] !== END_STR) {
     throw Error(
       `Format is wrong, please start with '${START_STR}' and end with '${END_STR}'`,
     );
   }
+  if (tempArr.length === 2) {
+    throw Error("no data to be imported");
+  }
   return tempArr.filter((item) => {
-    return item !== START_STR && item !== END_STR && item;
+    return item !== START_STR && item !== END_STR;
   });
 };
 
@@ -93,8 +97,10 @@ export const convertTextToData = (text: string) => {
 };
 
 export const convertDataToText = (data: IFiled[]): string => {
-  if(data.some(item=>!item.name || !item.dataType)){
-    throw Error("Please make sure every data has a name and a data type at lease");
+  if (data.some((item) => !item.name || !item.dataType)) {
+    throw Error(
+      "Please make sure every data has a name and a data type at lease",
+    );
   }
   if (data.length === 0) {
     throw Error("No data need to be exported");
