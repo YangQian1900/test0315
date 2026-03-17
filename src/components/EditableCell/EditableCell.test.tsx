@@ -15,6 +15,12 @@ interface IHuman {
 const alice: IHuman = { id: "shenfenzheng01", name: "Alice" };
 const newName = "Emma";
 
+/**
+ * 测试要点：
+ *  1、非编辑状态正常显示 children
+ *  2、编辑模式下显示 Form.Item 且 初始值为当前值
+ *  3、调用 onCellSave 保存
+ */
 describe("test EditableCell", () => {
   const mockOnCellSave = vi.fn((_rowId, _cellKey, cellValue) => cellValue);
   const mockForm = {
@@ -44,7 +50,6 @@ describe("test EditableCell", () => {
         </EditableCell>
       </FormContext.Provider>,
     );
-    // 1、非编辑状态正常显示 children
     expect(screen.getByText(alice.name)).toBeInTheDocument();
   });
 
@@ -63,12 +68,10 @@ describe("test EditableCell", () => {
         </EditableCell>
       </FormContext.Provider>,
     );
-    // 2、编辑模式下显示 Form.Item 且 初始值为当前值
     const input = screen.getByTestId("input");
     expect(input).toBeInTheDocument();
     expect(input).toHaveValue(alice.name);
 
-    // 3、调用 onCellSave 保存
     fireEvent.blur(input);
     expect(mockOnCellSave).toHaveBeenCalledWith(alice.id, "name", newName);
     expect(mockForm.setFieldValue).toHaveBeenCalledWith("name", newName);
