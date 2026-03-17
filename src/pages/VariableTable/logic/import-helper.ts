@@ -84,6 +84,7 @@ export const convertTextToData = (text: string) => {
     if (names.has(vari.name)) {
       throw Error(`Duplicate name: ${vari.name}`);
     }
+    names.add(vari.name);
     // 3.2 检查数据类型和默认值
     checkDataTypeRelatedInfo(vari.dataType, vari.defaultValue);
     varInfo.push({

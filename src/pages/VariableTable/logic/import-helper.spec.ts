@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   checkDataTypeRelatedInfo,
+  convertTextToData,
   getVarInfo,
   textToStrArr,
 } from "./import-helper";
@@ -94,5 +95,56 @@ describe("checkDataTypeRelatedInfo", () => {
     expect(() => checkDataTypeRelatedInfo("BOOL", "123")).toThrow();
     expect(() => checkDataTypeRelatedInfo("INT", "abc")).toThrow();
     expect(() => checkDataTypeRelatedInfo("INT", "1.3")).toThrow();
+  });
+});
+
+describe("convertTextToData", () => {
+  it("should convert correctly", () => {
+    //#region 数据准备
+    const validText1 = `
+VAR
+isReady : BOOL := TRUE; // System ready flag
+counter : INT := 0; // Counter
+temperature : INT;
+END_VAR
+`;
+
+    const validText1Result = [
+      {
+        index: 1,
+        name: "isReady",
+        dataType: "BOOL",
+        defaultValue: "TRUE",
+        comment: "System ready flag",
+      },
+      {
+        index: 2,
+        name: "counter",
+        dataType: "INT",
+        defaultValue: "0",
+        comment: "Counter",
+      },
+      {
+        index: 3,
+        name: "temperature",
+        dataType: "INT",
+        defaultValue: "0",
+        comment: undefined,
+      },
+    ];
+
+    //#endregion 数据准备
+    const result = convertTextToData(validText1);
+    expect(result).toEqual(validText1Result);
+  });
+
+  it("should throw when duplicate name", () => {
+    const text = `
+      VAR
+      counter : BOOL;
+      counter : INT;
+      END_VAR
+    `;
+    expect(() => convertTextToData(text)).toThrow();
   });
 });
