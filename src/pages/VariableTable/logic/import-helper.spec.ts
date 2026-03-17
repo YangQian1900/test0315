@@ -197,3 +197,20 @@ describe("convertDataToText", () => {
     expect(() => convertDataToText(data)).toThrow();
   });
 });
+
+describe("round trip", () => {
+  it("text -> data -> text should be consistent", () => {
+    const text = `
+      VAR
+      isReady : BOOL := TRUE; // System ready flag
+      counter : INT := 5;
+      END_VAR
+    `;
+
+    const data = convertTextToData(text)!;
+    const output = convertDataToText(data);
+
+    expect(output).toContain("isReady : BOOL := TRUE; // System ready flag");
+    expect(output).toContain("counter : INT := 5;");
+  });
+});
