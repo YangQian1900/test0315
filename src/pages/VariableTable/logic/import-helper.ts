@@ -93,6 +93,9 @@ export const convertTextToData = (text: string) => {
 };
 
 export const convertDataToText = (data: IFiled[]): string => {
+  if(data.some(item=>!item.name || !item.dataType)){
+    throw Error("Please make sure every data has a name and a data type at lease");
+  }
   if (data.length === 0) {
     throw Error("No data need to be exported");
   }
