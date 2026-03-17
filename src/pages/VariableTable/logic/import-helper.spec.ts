@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   checkDataTypeRelatedInfo,
+  convertDataToText,
   convertTextToData,
   getVarInfo,
   textToStrArr,
@@ -146,5 +147,53 @@ END_VAR
       END_VAR
     `;
     expect(() => convertTextToData(text)).toThrow();
+  });
+});
+
+describe("convertDataToText", () => {
+  it("should convert correctly", () => {
+    const validData1 = [
+      {
+        index: 1,
+        name: "isReady",
+        dataType: "BOOL",
+        defaultValue: "TRUE",
+        comment: "System ready flag",
+      },
+    ];
+    const result = convertDataToText(validData1);
+    expect(result).toContain("VAR");
+    expect(result).toContain("isReady : BOOL := TRUE; // System ready flag");
+    expect(result).toContain("END_VAR");
+  });
+  it("should throw when empty", () => {
+    expect(() => convertDataToText([])).toThrow();
+  });
+
+  it("should throw when missing name", () => {
+    const data = [
+      {
+        index: 1,
+        name: "",
+        dataType: "BOOL",
+        defaultValue: "TRUE",
+        comment: "System ready flag",
+      },
+    ];
+
+    expect(() => convertDataToText(data)).toThrow();
+  });
+  it("should throw when missing data type", () => {
+    const data = [
+      {
+        index: 1,
+        name: "isReady",
+        dataType: "",
+        defaultValue: "TRUE",
+        comment: "System ready flag",
+      },
+    ];
+
+    expect(() => convertDataToText(data)).toThrow();
   });
 });
