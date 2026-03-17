@@ -17,5 +17,6 @@ export default defineConfig({
   test: {
     environment: "jsdom",
     globals: true,
+    include: ["src/**/*.{test,spec}.{ts,tsx}"], // 测试文件匹配
   },
 });
