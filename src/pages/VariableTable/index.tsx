@@ -47,11 +47,16 @@ const VariableTable: FC = () => {
             record.index === editingRowId ? "ant-table-row-selected" : ""
           }
           scroll={{ y: 250, x: 900 }}
+          data-testid="variableTb"
         />
       </div>
       <div className={styles["row-operation"]}>
-        <Button onClick={addTableEmptyRow}>Add Row</Button>
-        <Button onClick={deleteTableRow}>Delete Row</Button>
+        <Button onClick={addTableEmptyRow} data-testid="btnAdd">
+          Add Row
+        </Button>
+        <Button onClick={deleteTableRow} data-testid="btnDelete">
+          Delete Row
+        </Button>
       </div>
       <div className={styles["custom-input"]}>
         <TextArea
@@ -61,10 +66,15 @@ const VariableTable: FC = () => {
             setMultiText(event.target.value);
           }}
           style={{ overflowY: "auto" }}
+          data-testid="textForIO"
         />
         <div className={styles["custom-input-buttons"]}>
-          <Button onClick={importText}>Import</Button>
-          <Button onClick={exportText}>Export</Button>
+          <Button onClick={importText} data-testid="btnImport">
+            Import
+          </Button>
+          <Button onClick={exportText} data-testid="btnExport">
+            Export
+          </Button>
         </div>
       </div>
     </div>
