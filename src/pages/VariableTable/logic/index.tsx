@@ -2,7 +2,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { columns, DefaultValueMap, type IFiled } from "./table";
 import type { AppDispatch, RootState } from "@/store";
 import { addRow, deleteRow, updateRow, setTable } from "@/store/table-slice";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { message } from "antd";
 import {
   checkDataTypeRelatedInfo,
@@ -16,6 +16,7 @@ import type {
 
 const useVariableTableLogic = () => {
   const tableData = useSelector((state: RootState) => state.table.data);
+  const tableRef = useRef<HTMLDivElement>(null);
   const dispatch = useDispatch<AppDispatch>();
   /** 导入的多行文本 */
   const [multiText, setMultiText] = useState("");
@@ -23,6 +24,7 @@ const useVariableTableLogic = () => {
   const [editingCellKey, setEditingCellKey] = useState<string>("");
   /** 正在编辑的行 也是当前选中的行 */
   const [editingRowId, setEditingRowId] = useState<number>(-1);
+  //退出编辑
   const resetEditingId = () => {
     setEditingRowId(-1);
     setEditingCellKey("");
@@ -97,7 +99,11 @@ const useVariableTableLogic = () => {
     cellKey,
     cellValue,
   ) => {
-    saveCell(rowId, cellKey, cellValue);
+    saveCell(
+      rowId,
+      cellKey,
+      typeof cellValue === "string" ? cellValue?.trim() || "" : cellValue,
+    );
     // 退出编辑
     resetEditingId();
     return cellValue;
@@ -114,7 +120,6 @@ const useVariableTableLogic = () => {
     //1、如果value为空 则提示姓名不能为空 且重置回原来的值
     if (!valueTrimed) {
       message.error("Name can't be empty");
-      // 退出编辑
       resetEditingId();
       return oldValue;
     }
@@ -125,6 +130,7 @@ const useVariableTableLogic = () => {
     );
     if (matched?.index !== undefined && matched.index !== rowId) {
       message.error("Name already exists");
+      resetEditingId();
       return oldValue;
     } else {
       // 3、检查没有问题 保存
@@ -143,7 +149,6 @@ const useVariableTableLogic = () => {
     //1、下拉框value不会为空 还是做一下判断
     if (!valueUpper) {
       message.error("Data Type can't be empty");
-      // 退出编辑
       resetEditingId();
       return oldValue;
     }
@@ -168,15 +173,13 @@ const useVariableTableLogic = () => {
     const oldValue = matchedRow?.[cellKey];
     // 1、默认值为空
     if (!valueTrimed) {
-      handleCellSave(rowId, cellKey, valueTrimed);
-      // 退出编辑
+      handleCellSave(rowId, cellKey, "");
       resetEditingId();
       return "";
     }
     // 2、输入默认值前必须类型不能为空
     if (!matchedRow.dataType) {
       message.error("Please input data type first");
-      // 退出编辑
       resetEditingId();
       return oldValue;
     }
@@ -190,6 +193,7 @@ const useVariableTableLogic = () => {
       if (error instanceof Error) {
         message.error(error.message);
       }
+      resetEditingId();
       return oldValue;
     }
   };
@@ -228,7 +232,25 @@ const useVariableTableLogic = () => {
     }
   };
 
+  useEffect(() => {
+    const handleClickOutsideTable = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      // 如果点击的是下拉框
+      if (target.closest(".ant-select-dropdown")) {
+        return;
+      }
+      if (!tableRef.current?.querySelector(".ant-table")?.contains(target)) {
+        resetEditingId();
+      }
+    };
+    document.addEventListener("click", handleClickOutsideTable);
+    return () => {
+      document.removeEventListener("click", handleClickOutsideTable);
+    };
+  }, []);
+
   return {
+    tableRef,
     mergedColumns,
     tableData,
     editingRowId,

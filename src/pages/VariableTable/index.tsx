@@ -9,6 +9,7 @@ import EditableCell from "@/components/EditableCell";
 
 const VariableTable: FC = () => {
   const {
+    tableRef,
     tableData,
     mergedColumns,
     editingRowId,
@@ -28,7 +29,7 @@ const VariableTable: FC = () => {
   };
   return (
     <div className={styles.center}>
-      <div className={styles.table}>
+      <div className={styles.table} ref={tableRef}>
         <Table
           dataSource={tableData}
           columns={mergedColumns}

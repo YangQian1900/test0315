@@ -29,7 +29,7 @@ export const columns: ICusCellRenderColumnType<IFiled>[] = [
     width: 200,
     isEditing: false,
     renderFormItem: (_record, save) => (
-      <Input onBlur={save} />
+      <Input onBlur={save} onPressEnter={save}/>
     ),
   },
   {
@@ -53,7 +53,7 @@ export const columns: ICusCellRenderColumnType<IFiled>[] = [
     width: 200,
     isEditing: false,
     renderFormItem: (_record, save) => (
-      <Input onBlur={save} />
+      <Input onBlur={save} onPressEnter={save}/>
     ),
   },
   {
@@ -61,8 +61,11 @@ export const columns: ICusCellRenderColumnType<IFiled>[] = [
     dataIndex: "comment",
     width: 200,
     isEditing: false,
+    ellipsis: {
+      showTitle: true,
+    },
     renderFormItem: (_record, save) => (
-      <Input onBlur={save} />
+      <Input onBlur={save} onPressEnter={save}/>
     ),
   },
 ];

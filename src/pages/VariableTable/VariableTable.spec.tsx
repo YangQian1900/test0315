@@ -38,18 +38,14 @@ describe("variable table", () => {
   // 界面要素齐全
   it("Table Display", async () => {
     render(<VariableTableWithProvider />);
-     const tbs = screen.getByTestId("variableTb");
-     const tables = within(tbs).getAllByRole("table");
-     const rows = within(tables[0]).getAllByRole("row");
+    const tbs = screen.getByTestId("variableTb");
+    const tables = within(tbs).getAllByRole("table");
+    const rows = within(tables[0]).getAllByRole("row");
     // 检查列标题
     expect(rows[0].textContent?.includes("Index")).toBe(true);
     expect(rows[0].textContent?.includes("Name")).toBe(true);
-    expect(rows[0].textContent?.includes("Data Type")).toBe(
-      true,
-    );
-    expect(rows[0].textContent?.includes("Default Value")).toBe(
-      true,
-    );
+    expect(rows[0].textContent?.includes("Data Type")).toBe(true);
+    expect(rows[0].textContent?.includes("Default Value")).toBe(true);
     expect(rows[0].textContent?.includes("Comment")).toBe(true);
     // 检查按钮
     expect(screen.getByTestId("btnAdd")).toBeInTheDocument();
@@ -66,7 +62,7 @@ describe("variable table", () => {
     const user = userEvent.setup();
     // 1、未新增之前数据为0条
     expect(getData().length).toBe(0);
-    // 2、新增一行
+    // 2、新增第一行
     await addNewRow();
     // 2.1 UI上有一行store中也有一行
     const firstRow = getRow(1);
@@ -90,29 +86,26 @@ describe("variable table", () => {
         newEmptyRow.defaultValue ||
         newEmptyRow.comment,
     ).toBe("");
-    // 3、编辑步骤2中新增行的name列
+    // 3、编辑第一行的name列
+    // 3.1 保存非空白name
     const name1 = "counter";
     await user.click(cellsOfFirstRow[1]);
     const firstNameInput = within(cellsOfFirstRow[1]).getByRole("textbox");
-    // 3.1 点击之后进入编辑状态
     expect(firstNameInput).toBeInTheDocument();
-    // 3.2 保存非空白name
     await user.type(firstNameInput, name1);
     fireEvent.blur(firstNameInput);
     expect(getData()[0].name).toBe(name1);
     expect(cellsOfFirstRow[1]).toHaveTextContent(name1);
-    // 3.3 再次编辑姓名输入为空
+    // 3.2 再次编辑姓名输入为空
     await user.type(firstNameInput, " ");
     fireEvent.blur(firstNameInput);
     expect(cellsOfFirstRow[1]).toHaveTextContent(name1);
-    //4、再新增一行
+    //4、新增第二行
     await addNewRow();
     const secondRow = getRow(2);
-    expect(secondRow).toBeInTheDocument();
-    expect(getData().length).toBe(2);
     // 4.1 第二行序号递增
     expect(getData()[1].index).toBe(2);
-    // 4.2编辑第二行中的name并尝试保存和第一行相同的名字
+    // 4.2 第二行中的name输入第一行中name的值保存会失败
     const cellsOfSecondRow = within(secondRow).getAllByRole("cell");
     await user.click(cellsOfSecondRow[1]);
     let secondNameInput = within(cellsOfSecondRow[1]).getByRole("textbox");
@@ -120,7 +113,7 @@ describe("variable table", () => {
     fireEvent.blur(secondNameInput);
     expect(getData()[1].name).not.toBe(name1);
     expect(cellsOfSecondRow[1]).not.toHaveTextContent(name1);
-    // 4.3 重新输入一个不重复的名字保存
+    // 4.3 重新输入一个不重复的名字保存保存成功
     const name2 = "newcouner";
     await user.click(cellsOfSecondRow[1]);
     secondNameInput = within(cellsOfSecondRow[1]).getByRole("textbox");
@@ -172,7 +165,6 @@ describe("variable table", () => {
         );
       }
     }
-
     // 5.3 选中INT
     await user.click(cellsOfSecondRow[2]);
     secondDataTypeSelect = within(cellsOfSecondRow[2]).getByRole("combobox");
@@ -185,7 +177,7 @@ describe("variable table", () => {
     expect(cellsOfSecondRow[2]).toHaveTextContent("INT");
     expect(getData()[1].defaultValue).toBe("0");
     expect(cellsOfSecondRow[3]).toHaveTextContent("0");
-    // 5.2 在类型是INT编辑第二行的默认值
+    // 5.4 在类型是INT编辑第二行的默认值
     const tempValidInt = ["0", "2147483647", "-2147483648", " "];
     const tempInvalidInt = ["0.7", "99.99", "2147483648", "-2147483649"];
     for (const testValue of [...tempValidInt, ...tempInvalidInt]) {
@@ -204,16 +196,19 @@ describe("variable table", () => {
         expect(cellsOfSecondRow[3]).not.toHaveTextContent(testValue.trim());
       }
     }
-    // 6 编辑第二行备注
-    await user.click(cellsOfSecondRow[4]);
-    const sendCommentInput = within(cellsOfSecondRow[4]).getByRole("textbox");
-    await user.type(sendCommentInput, "Counter is for calculate number");
-    fireEvent.blur(sendCommentInput);
-    expect(getData()[1].comment).toBe("Counter is for calculate number");
-    expect(cellsOfSecondRow[4]).toHaveTextContent(
-      "Counter is for calculate number",
-    );
-    // 7 删除第一行数据
+    // 6、编辑第二行备注
+    const comments = ["Counter is for calculate number", " "];
+    for (const str of comments) {
+      await user.click(cellsOfSecondRow[4]);
+      const sendCommentInput = within(cellsOfSecondRow[4]).getByRole("textbox");
+      await user.clear(sendCommentInput);
+      await user.type(sendCommentInput, str);
+      fireEvent.blur(sendCommentInput);
+      expect(getData()[1].comment).toBe(str.trim());
+      expect(cellsOfSecondRow[4]).toHaveTextContent(str.trim());
+    }
+
+    // 7、删除第一行数据，数据数量变为1且第二行的序号从2变为1
     await deleteRow(getData()[0].index);
     expect(getData().length).toBe(1);
     expect(getData()[0].index).toBe(1);
@@ -228,7 +223,7 @@ describe("variable table", () => {
       "temperature : INT;",
       "END_VAR",
     ];
-     const validExportStrArr = [
+    const validExportStrArr = [
       "VAR",
       "isReady : BOOL := TRUE; // System ready flag",
       "counter : INT := 0; // Counter",
